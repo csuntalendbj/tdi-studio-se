@@ -172,6 +172,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
 
         colorText.addVerifyKeyListener(new VerifyKeyListener() {
 
+            @Override
             public void verifyKey(VerifyEvent event) {
 
                 if (event.stateMask == SWT.CTRL && event.keyCode == 13) {
@@ -182,6 +183,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
         });
         colorText.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent e) {
                 isModified = true;
             }
@@ -197,6 +199,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
         if (parent != null) {
             parent.addDisposeListener(new DisposeListener() {
 
+                @Override
                 public void widgetDisposed(DisposeEvent e) {
                     if (res != null && !res.isDisposed()) {
                         res.dispose();
@@ -297,6 +300,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
         limitResults.addMouseListener(new MouseAdapter() {
 
             // enable/disable input field when checkbox is clicked
+            @Override
             public void mouseUp(MouseEvent e) {
                 maxResultText.setEnabled(limitResults.getSelection());
                 ifLimit = limitResults.getSelection();
@@ -317,10 +321,12 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
     /**
      * Refresh actions availability on the toolbar.
      */
+    @Override
     public void refresh(final boolean sessionChanged) {
 
         this.getShell().getDisplay().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
 
                 if (sessionChanged) {
@@ -344,6 +350,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#getSessionTreeNode()
      */
+    @Override
     public RepositoryNode getRepositoryNode() {
         return this.repositoryNode;
     }
@@ -353,6 +360,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#getIfLimit()
      */
+    @Override
     public boolean getIfLimit() {
         return ifLimit;
     }
@@ -362,6 +370,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#getMaxResult()
      */
+    @Override
     public String getMaxResult() {
         return maxResultText.getText();
     }
@@ -371,13 +380,16 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#setRepositoryNode(org.talend.repository.model.RepositoryNode)
      */
+    @Override
     public void setRepositoryNode(RepositoryNode node) {
         Assert.isNotNull(node, Messages.getString("SQLBuilderEditorComposite.assertMessage")); //$NON-NLS-1$
         this.repositoryNode = node;
         guiModificationQueryAction.setCurrentNode(node);
         setEditorTitle(this.repositoryNode, connParam, tabItem);
         sessionSwitcher.refreshSelectedRepository();
-        createEditorProposal();
+        if (!readOnly) {
+            createEditorProposal();
+        }
     }
 
     /**
@@ -391,6 +403,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#getRepositoryName()
      */
+    @Override
     public String getRepositoryName() {
         if (repositoryNode == null) {
             return ""; //$NON-NLS-1$
@@ -404,6 +417,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#getSQLToBeExecuted()
      */
+    @Override
     public String getSQLToBeExecuted() {
         return colorText.getText();
     }
@@ -425,6 +439,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#clearText()
      */
+    @Override
     public void clearText() {
         this.colorText.setText(""); //$NON-NLS-1$
     }
@@ -434,6 +449,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#setEditorContent(java.lang.String)
      */
+    @Override
     public void setEditorContent(String string) {
         this.colorText.setText(string);
     }
@@ -455,6 +471,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
 
     }
 
+    @Override
     public boolean getDefaultEditor() {
         return this.isDefaultEditor;
     }
@@ -464,6 +481,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @return the connParam
      */
+    @Override
     public ConnectionParameters getConnParam() {
         return this.connParam;
     }
@@ -505,10 +523,12 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * 
      * @see org.talend.sqlbuilder.ui.editor.ISQLEditor#getMultiPageEditor()
      */
+    @Override
     public MultiPageSqlBuilderEditor getMultiPageEditor() {
         return multiPageEditor;
     }
 
+    @Override
     public StyledText getColorText() {
         return this.colorText;
     }
@@ -523,6 +543,7 @@ public class SQLBuilderEditorComposite extends AbstractSQLEditorComposite {
      * For bug TDI-7643, every composite should has different query object, using <code>queryObject</code> to store the
      * object.
      */
+    @Override
     public Query doSaveSQL(Query query2, boolean as) {
         queryObject = super.doSaveSQL(query2, as);
         this.setQueryObject(queryObject);
