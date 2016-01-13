@@ -55,7 +55,7 @@
 		<finalName>${talend.job.finalName}</finalName>
 		<resources>
             <resource>
-                <directory>${sourcecodes.dir}</directory>
+                <directory>${project.build.sourceDirectory}</directory>
                 <includes>                      
                     <include>**/*.wsdl</include>
                 </includes>
