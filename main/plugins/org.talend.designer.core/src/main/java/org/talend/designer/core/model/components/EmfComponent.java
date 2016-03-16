@@ -17,11 +17,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -140,14 +139,14 @@ import org.talend.hadoop.distribution.DistributionFactory;
 import org.talend.hadoop.distribution.DistributionModuleGroup;
 import org.talend.hadoop.distribution.component.HadoopComponent;
 import org.talend.hadoop.distribution.condition.BasicExpression;
-import org.talend.hadoop.distribution.condition.BooleanOperator;
 import org.talend.hadoop.distribution.condition.ComponentCondition;
 import org.talend.hadoop.distribution.condition.EqualityOperator;
-import org.talend.hadoop.distribution.condition.MultiComponentCondition;
 import org.talend.hadoop.distribution.condition.NestedComponentCondition;
-import org.talend.hadoop.distribution.condition.ShowExpression;
 import org.talend.hadoop.distribution.condition.SimpleComponentCondition;
-import org.talend.hadoop.distribution.utils.ComponentConditionUtil;
+import org.talend.hadoop.distribution.helper.DistributionsHelper;
+import org.talend.hadoop.distribution.model.DistributionBean;
+import org.talend.hadoop.distribution.model.DistributionVersion;
+import org.talend.hadoop.distribution.model.DistributionVersionModule;
 import org.talend.librariesmanager.model.ModulesNeededProvider;
 import org.talend.librariesmanager.prefs.LibrariesManagerUtils;
 
@@ -1551,143 +1550,31 @@ public class EmfComponent extends AbstractBasicComponent {
                 areHadoopLibsLoaded = true;
             }
         } else if (type == EParameterFieldType.HADOOP_DISTRIBUTION) {
-            // We get the component type defined by the NAME of the HADOOP_DISTRIBUTION parameter.
             ComponentType componentType = ComponentType.getComponentType(parentParam.getName());
-
-            // We retrieve all the implementations of the HadoopComponent service.
-            BundleContext bc = FrameworkUtil.getBundle(DistributionFactory.class).getBundleContext();
-            Collection<ServiceReference<? extends HadoopComponent>> distributions = new LinkedList<>();
-            try {
-                Class<? extends HadoopComponent> clazz = (Class<? extends HadoopComponent>) Class.forName(componentType
-                        .getService());
-                distributions.addAll(bc.getServiceReferences(clazz, null));
-            } catch (InvalidSyntaxException | ClassNotFoundException e) {
-                CommonExceptionHandler.process(e);
-            }
-
-            class Bean {
-
-                private String mName;
-
-                private String mDisplayName;
-
-                private String mDistributionName;
-
-                private Set<DistributionModuleGroup> mModuleGroups;
-
-                private ComponentCondition mDisplayCondition;
-
-                public Bean(String name, String displayName) {
-                    this.mName = name;
-                    this.mDisplayName = displayName;
-                }
-
-                public Bean(String name, String displayName, String distributionName, Set<DistributionModuleGroup> moduleGroups,
-                        ComponentCondition displayCondition) {
-                    this.mName = name;
-                    this.mDisplayName = displayName;
-                    this.mDistributionName = distributionName;
-                    this.mModuleGroups = moduleGroups;
-                    this.mDisplayCondition = displayCondition;
-                }
-
-                public String getName() {
-                    return this.mName;
-                }
-
-                public String getDisplayName() {
-                    return this.mDisplayName;
-                }
-
-                public String getDistributionName() {
-                    return this.mDistributionName;
-                }
-
-                public Set<DistributionModuleGroup> getModuleGroups() {
-                    return this.mModuleGroups;
-                }
-
-                public ComponentCondition getDisplayCondition() {
-                    return this.mDisplayCondition;
-                }
-            }
-
-            Map<String, Bean> distribMap = new HashMap<>();
-            List<Bean> versionList = new ArrayList<>();
-            Map<String, Set<ComponentCondition>> showIfMap = new HashMap<>();
-            Map<String, String> defaultVersionPerDistribution = new HashMap<>();
-
-            for (ServiceReference<? extends HadoopComponent> sr : distributions) {
-                HadoopComponent hc = bc.getService(sr);
-                String distribution = hc.getDistribution();
-                distribMap.put(distribution, new Bean(distribution, hc.getDistributionName()));
-                String version = hc.getVersion();
-                if (version != null) {
-                    versionList.add(new Bean(version, hc.getVersionName(componentType), distribution, hc
-                            .getModuleGroups(componentType), hc.getDisplayCondition(componentType)));
-                    if (showIfMap.get(distribution) == null) {
-                        showIfMap.put(distribution, new HashSet<ComponentCondition>());
-                    }
-                    showIfMap.get(distribution).add(hc.getDisplayCondition(componentType));
-                    defaultVersionPerDistribution.put(distribution, version);
-                }
-            }
-
-            List<Bean> distribList = new ArrayList<>(distribMap.values());
-            // The distribution list is sorted by alphabetical order, putting the custom version at the last
-            // position.
-            Collections.sort(distribList, new Comparator<Bean>() {
-
-                @Override
-                public int compare(Bean b1, Bean b2) {
-                    if ("CUSTOM".equals(b1.getName())) { //$NON-NLS-1$
-                        return 1;
-                    }
-
-                    if ("CUSTOM".equals(b2.getName())) { //$NON-NLS-1$
-                        return -1;
-                    }
-
-                    return b1.getName().compareTo(b2.getName());
-                }
-            });
-
-            Collections.sort(versionList, new Comparator<Bean>() {
-
-                @Override
-                public int compare(Bean b1, Bean b2) {
-                    int cmp = b1.getDistributionName().compareTo(b2.getDistributionName());
-                    if (cmp == 0) {
-                        cmp = b1.getName().compareTo(b2.getName());
-                    }
-                    return cmp;
-                }
-            });
+            DistributionsHelper distributionsHelper = new DistributionsHelper(componentType);
+            final DistributionBean[] hadoopDistributions = distributionsHelper.getDistributions();
 
             ElementParameter newParam = new ElementParameter(node);
             newParam.setCategory(EComponentCategory.BASIC);
             newParam.setName(componentType.getDistributionParameter());
             newParam.setDisplayName("Distribution"); //$NON-NLS-1$
 
-            String[] displayName = new String[distribList.size()];
-            String[] itemValue = new String[distribList.size()];
-            String[] showIfVersion = new String[distribList.size()];
-            String[] notShowIfVersion = new String[distribList.size()];
-            Iterator<Bean> distribIter = distribList.iterator();
-            int index = 0;
+            String[] displayName = new String[hadoopDistributions.length];
+            String[] itemValue = new String[hadoopDistributions.length];
+            String[] showIfVersion = new String[hadoopDistributions.length];
+            String[] notShowIfVersion = new String[hadoopDistributions.length];
 
-            while (distribIter.hasNext()) {
-                Bean that = distribIter.next();
-                displayName[index] = that.getDisplayName();
-                itemValue[index] = that.getName();
+            List<DistributionVersion> versionsList = new ArrayList<DistributionVersion>();
 
-                // We compose a ShowIf parameter for a distribution, only if the list of its version all have a
-                // display
-                // condition.
-                ComponentCondition cc = ComponentConditionUtil.buildDistributionShowIf(showIfMap.get(that.getName()));
-                showIfVersion[index] = cc == null ? null : cc.getConditionString();
-                notShowIfVersion[index] = null;
-                index++;
+            for (int i = 0; i < hadoopDistributions.length; i++) {
+                DistributionBean that = hadoopDistributions[i];
+                itemValue[i] = that.name;
+                displayName[i] = that.displayName;
+
+                showIfVersion[i] = that.getDisplayShowIf();
+                notShowIfVersion[i] = null;
+
+                versionsList.addAll(Arrays.asList(that.getVersions()));
             }
 
             String defaultValue = itemValue[0];
@@ -1710,93 +1597,35 @@ public class EmfComponent extends AbstractBasicComponent {
 
             listParam.add(newParam);
 
-            displayName = new String[versionList.size()];
-            itemValue = new String[versionList.size()];
-            showIfVersion = new String[versionList.size()];
-            notShowIfVersion = new String[versionList.size()];
-            Iterator<Bean> versionIter = versionList.iterator();
-            index = 0;
+            displayName = new String[versionsList.size()];
+            itemValue = new String[versionsList.size()];
+            showIfVersion = new String[versionsList.size()];
+            notShowIfVersion = new String[versionsList.size()];
+            Iterator<DistributionVersion> versionIter = versionsList.iterator();
+            int index = 0;
             if (!areHadoopDistribsLoaded) {
                 hadoopDistributionImportNeedsList = new ArrayList<>();
             }
             while (versionIter.hasNext()) {
-                Bean that = versionIter.next();
-                displayName[index] = that.getDisplayName();
-                itemValue[index] = that.getName();
+                DistributionVersion that = versionIter.next();
+                itemValue[index] = that.version;
+                displayName[index] = that.displayVersion;
 
-                ComponentCondition additionalCondition = that.getDisplayCondition();
-                if (additionalCondition != null
-                        && ("(true)".equals(additionalCondition.getConditionString()) || "(false)".equals(additionalCondition //$NON-NLS-1$ //$NON-NLS-2$
-                                .getConditionString()))) {
-                    // Don't show a version if it's display condition is a BooleanCondition.
-                    showIfVersion[index] = "(true)".equals(additionalCondition.getConditionString()) ? "true" : "false"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                } else {
-                    // Compose the ComponentCondition to display a version.
-                    ComponentCondition condition;
-                    org.talend.hadoop.distribution.condition.Expression e = new BasicExpression(
-                            componentType.getDistributionParameter(), EqualityOperator.EQ, that.getDistributionName());
-                    if (additionalCondition != null) {
-                        condition = new MultiComponentCondition( //
-                                new SimpleComponentCondition(e), //
-                                BooleanOperator.AND, //
-                                new NestedComponentCondition(additionalCondition));
-                    } else {
-                        condition = new SimpleComponentCondition(e);
-                    }
-
-                    showIfVersion[index] = condition.getConditionString();
-                }
-
+                showIfVersion[index] = that.getDisplayShowIf();
                 notShowIfVersion[index] = null;
 
                 if (!areHadoopDistribsLoaded) {
                     // Create the EMF IMPORTType to import the modules group required by a Hadoop distribution for a
                     // given
                     // ComponentType.
-                    if (that.getModuleGroups() != null) {
-                        Iterator<DistributionModuleGroup> moduleGroups = that.getModuleGroups().iterator();
-                        while (moduleGroups.hasNext()) {
-                            DistributionModuleGroup group = moduleGroups.next();
-                            IMPORTType importType = ComponentFactory.eINSTANCE.createIMPORTType();
-                            importType.setMODULEGROUP(group.getModuleName());
 
-                            ComponentCondition condition;
-                            org.talend.hadoop.distribution.condition.Expression e1 = new BasicExpression(
-                                    componentType.getDistributionParameter(), EqualityOperator.EQ, that.getDistributionName());
-                            org.talend.hadoop.distribution.condition.Expression e2 = new BasicExpression(
-                                    componentType.getVersionParameter(), EqualityOperator.EQ, that.getName());
-                            org.talend.hadoop.distribution.condition.Expression e3 = new ShowExpression(
-                                    componentType.getDistributionParameter());
-                            org.talend.hadoop.distribution.condition.Expression e4 = new ShowExpression(
-                                    componentType.getVersionParameter());
-
-                            // The import is needed only if the good version and the good distribution are selected, and
-                            // if the Distribution and Version parameters are shown. The second condition to take the
-                            // USE_EXISTING_CONNECTIOn into account.
-
-                            condition = new MultiComponentCondition( //
-                                    new SimpleComponentCondition(e1), //
-                                    BooleanOperator.AND, //
-                                    new MultiComponentCondition( //
-                                            new SimpleComponentCondition(e2), //
-                                            BooleanOperator.AND, //
-                                            new MultiComponentCondition( //
-                                                    new SimpleComponentCondition(e3), //
-                                                    BooleanOperator.AND, //
-                                                    new SimpleComponentCondition(e4))));
-
-                            if (group.getRequiredIf() != null) {
-                                condition = new MultiComponentCondition( //
-                                        condition, //
-                                        BooleanOperator.AND, //
-                                        new NestedComponentCondition(group.getRequiredIf()));
-                            }
-
-                            importType.setREQUIREDIF(condition.getConditionString());
-                            importType.setMRREQUIRED(group.isMrRequired());
-                            ModulesNeededProvider.collectModuleNeeded(node.getComponent() != null ? node.getComponent().getName()
-                                    : "", importType, hadoopDistributionImportNeedsList); //$NON-NLS-1$
-                        }
+                    for (DistributionVersionModule versionModule : that.getVersionModules()) {
+                        IMPORTType importType = ComponentFactory.eINSTANCE.createIMPORTType();
+                        importType.setMODULEGROUP(versionModule.moduleGrop.getModuleName());
+                        importType.setMRREQUIRED(versionModule.moduleGrop.isMrRequired());
+                        importType.setREQUIREDIF(versionModule.getModuleRequiredIf().getConditionString());
+                        ModulesNeededProvider.collectModuleNeeded(node.getComponent() != null ? node.getComponent().getName()
+                                : "", importType, hadoopDistributionImportNeedsList); //$NON-NLS-1$
                     }
                 }
 
@@ -1830,16 +1659,16 @@ public class EmfComponent extends AbstractBasicComponent {
             newParam.setGroup(xmlParam.getGROUP());
             newParam.setGroupDisplayName(parentParam.getGroupDisplayName());
             newParam.setRepositoryValue(componentType.getVersionRepositoryValueParameter());
-            for (Bean b : distribList) {
+            for (DistributionBean b : hadoopDistributions) {
                 IElementParameterDefaultValue defaultType = new ElementParameterDefaultValue();
-                String defaultValuePerDistrib = defaultVersionPerDistribution.get(b.getName());
-                if (defaultValuePerDistrib == null || "".equals(defaultValuePerDistrib)) { //$NON-NLS-1$
+                final DistributionVersion defaultVersion = b.getDefaultVersion();
+                if (defaultVersion == null || defaultVersion.version == null || defaultVersion.version.isEmpty()) {
                     defaultType.setDefaultValue(defaultValue);
                 } else {
-                    defaultType.setDefaultValue(defaultValuePerDistrib);
+                    defaultType.setDefaultValue(defaultVersion.version);
                 }
                 defaultType.setIfCondition(new SimpleComponentCondition(new BasicExpression(componentType
-                        .getDistributionParameter(), EqualityOperator.EQ, b.getName())).getConditionString());
+                        .getDistributionParameter(), EqualityOperator.EQ, b.name)).getConditionString());
                 newParam.getDefaultValues().add(defaultType);
             }
 
