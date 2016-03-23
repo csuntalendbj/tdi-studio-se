@@ -620,7 +620,7 @@ public final class Expression {
                         } else if (testedParameter.getListItemsValue() instanceof Object[]) {
                             Object[] values = testedParameter.getListItemsValue();
                             for (int i = 0; i < values.length && !found; i++) {
-                                if (values[i].equals(value)) {
+                                if (value.equals(values[i])) {
                                     String variableCode = testedParameter.getListItemsDisplayCodeName()[i];
                                     if (variableCode.equals(variableValue)) {
                                         found = true;
@@ -761,8 +761,7 @@ public final class Expression {
      * except on an error case.
      * @return
      */
-    private static boolean executeBooleanMethod(String methodName, String distribution, String version,
-            boolean positiveAssertion) {
+    private static boolean executeBooleanMethod(String methodName, String distribution, String version, boolean positiveAssertion) {
         try {
             boolean ret = DistributionFactory.executeBooleanMethod(methodName, distribution, version);
             return positiveAssertion ? ret : !ret;
