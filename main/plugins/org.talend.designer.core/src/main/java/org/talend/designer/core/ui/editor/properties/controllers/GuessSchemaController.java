@@ -67,7 +67,7 @@ import org.talend.core.model.metadata.builder.connection.DatabaseConnection;
 import org.talend.core.model.metadata.builder.database.ExtractMetaDataFromDataBase;
 import org.talend.core.model.metadata.builder.database.ExtractMetaDataUtils;
 import org.talend.core.model.metadata.builder.database.JavaSqlFactory;
-import org.talend.core.model.metadata.connection.hive.HiveConnVersionInfo;
+import org.talend.core.model.metadata.connection.hive.HiveModeInfo;
 import org.talend.core.model.metadata.connection.hive.HiveServerVersionInfo;
 import org.talend.core.model.metadata.types.JavaDataTypeHelper;
 import org.talend.core.model.metadata.types.JavaTypesManager;
@@ -765,7 +765,7 @@ public class GuessSchemaController extends AbstractElementPropertySectionControl
                     String nameNode = TalendTextUtils.removeQuotes(String.valueOf(iMetadataConnection
                             .getParameter(ConnParameterKeys.CONN_PARA_KEY_NAME_NODE_URL)));
                     String thrifturi = null;
-                    if (HiveConnVersionInfo.MODE_EMBEDDED.getKey().equals(iMetadataConnection.getDbVersionString())) {
+                    if (HiveModeInfo.get(iMetadataConnection.getDbVersionString()) == HiveModeInfo.EMBEDDED) {
                         thrifturi = "thrift://" + iMetadataConnection.getServerName() + ":" + iMetadataConnection.getPort();
                     }
                     info = new DbInfo(iMetadataConnection.getDbType(), iMetadataConnection.getUsername(),
@@ -891,7 +891,7 @@ public class GuessSchemaController extends AbstractElementPropertySectionControl
                 ConnectionStatus connectionStatus = new ConnectionStatus();
                 connectionStatus.setResult(false);
                 try {
-                    if (HiveConnVersionInfo.MODE_EMBEDDED.getKey().equals(metadataConnection.getDbVersionString())) {
+                    if (HiveModeInfo.get(metadataConnection.getDbVersionString()) == HiveModeInfo.EMBEDDED) {
                         JavaSqlFactory.doHivePreSetup((DatabaseConnection) metadataConnection.getCurrentConnection());
                     }
                     HiveConnectionManager.getInstance().checkConnection(metadataConnection);

@@ -24,7 +24,7 @@ import org.talend.core.model.metadata.IMetadataConnection;
 import org.talend.core.model.metadata.IMetadataTable;
 import org.talend.core.model.metadata.MetadataTable;
 import org.talend.core.model.metadata.builder.connection.DatabaseConnection;
-import org.talend.core.model.metadata.connection.hive.HiveConnVersionInfo;
+import org.talend.core.model.metadata.connection.hive.HiveModeInfo;
 import org.talend.core.model.process.EParameterFieldType;
 import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IElementParameter;
@@ -80,7 +80,7 @@ public class ConvertRepositoryNodeToProcessNode {
             String nameNode = TalendTextUtils.removeQuotes(String.valueOf(iMetadataConnection
                     .getParameter(ConnParameterKeys.CONN_PARA_KEY_NAME_NODE_URL)));
             String thrifturi = null;
-            if (HiveConnVersionInfo.MODE_EMBEDDED.getKey().equals(iMetadataConnection.getDbVersionString())) {
+            if (HiveModeInfo.get(iMetadataConnection.getDbVersionString()) == HiveModeInfo.EMBEDDED) {
                 thrifturi = "thrift://" + iMetadataConnection.getServerName() + ":" + iMetadataConnection.getPort();
             }
             info = new DbInfo(iMetadataConnection.getDbType(), iMetadataConnection.getUsername(),
