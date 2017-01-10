@@ -25,6 +25,7 @@ import java.io.LineNumberReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1307,6 +1308,8 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
                 return ""; //$NON-NLS-1$
             }
             File[] jarFiles = libDir.listFiles(FilesUtils.getAcceptJARFilesFilter());
+            List<File> listFile = Arrays.asList(jarFiles);
+            Collections.sort(listFile);
 
             if (jarFiles != null && jarFiles.length > 0) {
                 for (File jarFile : jarFiles) {
