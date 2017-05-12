@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1410,7 +1411,7 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                     }
                     if (found) {
                         if ((lineValues == null) || (lineValues.get(elementValue.getElementRef()) != null)) {
-                            lineValues = new HashMap<String, Object>();
+                            lineValues = new LinkedHashMap<String, Object>();
                             tableValues.add(lineValues);
                         }
                         boolean needRemoveQuotes = false;
