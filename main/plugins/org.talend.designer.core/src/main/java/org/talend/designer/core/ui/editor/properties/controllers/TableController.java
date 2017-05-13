@@ -16,6 +16,7 @@ import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -772,7 +773,7 @@ public class TableController extends AbstractElementPropertySectionController {
     }
 
     public static Map<String, Object> createNewLine(IElementParameter param) {
-        Map<String, Object> line = new HashMap<String, Object>();
+        Map<String, Object> line = new LinkedHashMap<String, Object>();
         String[] items = param.getListItemsDisplayCodeName();
         Object[] itemsValue = param.getListItemsValue();
         IElementParameter tmpParam;
