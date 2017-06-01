@@ -309,6 +309,7 @@ public class JavaProcessUtil {
             // if node is deactivated, we don't need at all its dependencies.
             return;
         }
+        
         List<ModuleNeeded> moduleList = node.getModulesNeeded();
         for (ModuleNeeded needed : moduleList) {
             if (needed != null) {
@@ -394,7 +395,13 @@ public class JavaProcessUtil {
                                     }
 
                                 } else {
-                                    modulesNeeded.add(getModuleValue(process, moduleName));
+                                    ModuleNeeded mn = getModuleValue(process, moduleName);
+                                    
+                                    if(line.get("JAR_NEXUS_VERSION") != null){
+                                        String a = moduleName.replaceFirst("[.][^.]+$", "");
+                                        mn.setMavenUri("mvn:org.talend.libraries/"+a+"/"+line.get("JAR_NEXUS_VERSION")+"/jar");
+                                    }
+                                    modulesNeeded.add(mn);
                                 }
                             }
                         }
