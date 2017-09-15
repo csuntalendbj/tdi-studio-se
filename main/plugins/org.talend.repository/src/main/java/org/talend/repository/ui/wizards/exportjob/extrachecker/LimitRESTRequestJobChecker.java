@@ -17,13 +17,6 @@ public class LimitRESTRequestJobChecker extends AbstractJobNodeChecker {
 
 	private static final String T_REST_REQUEST = "tRESTRequest";
 
-    /**
-     * DOC sunchaoqun LimitRESTRequestJobChecker constructor comment.
-     */
-    public LimitRESTRequestJobChecker() {
-        System.out.println(this);
-    }
-
     boolean tRESTRequestExist = false;
 
 	@Override
