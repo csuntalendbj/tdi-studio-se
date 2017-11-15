@@ -23,6 +23,7 @@ import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.model.general.Project;
 import org.talend.core.model.process.ProcessUtils;
 import org.talend.core.model.repository.ERepositoryObjectType;
+import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
@@ -30,6 +31,7 @@ import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.runprocess.java.TalendJavaProjectManager;
 import org.talend.login.AbstractLoginTask;
 import org.talend.repository.ProjectManager;
+import org.talend.repository.RepositoryWorkUnit;
 
 /**
  * created by ggu on 26 Mar 2015 Detailled comment
@@ -58,14 +60,22 @@ public class MavenPomInstallLoginTask extends AbstractLoginTask implements IRunn
                 // FIXME for reference project, not sure what case will need it.
                 // installAggregatorFolderPoms(refHelper);
             }
+            RepositoryWorkUnit workUnit = new RepositoryWorkUnit<Object>("update code project") { //$NON-NLS-1$
+
+                @Override
+                protected void run() {
+                    updateCodeProject(monitor, ERepositoryObjectType.ROUTINES);
+                    if (ProcessUtils.isRequiredPigUDFs(null)) {
+                        updateCodeProject(monitor, ERepositoryObjectType.PIG_UDF);
+                    }
+                    if (ProcessUtils.isRequiredBeans(null)) {
+                        updateCodeProject(monitor, ERepositoryObjectType.valueOf("BEANS")); //$NON-NLS-1$
+                    }
+                }
+            };
+            workUnit.setAvoidUnloadResources(true);
+            ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
             
-            updateCodeProject(monitor, ERepositoryObjectType.ROUTINES);
-            if (ProcessUtils.isRequiredPigUDFs(null)) {
-                updateCodeProject(monitor, ERepositoryObjectType.PIG_UDF);
-            }
-            if (ProcessUtils.isRequiredBeans(null)) {
-                updateCodeProject(monitor, ERepositoryObjectType.valueOf("BEANS")); //$NON-NLS-1$
-            }
         } catch (Exception e) {
             ExceptionHandler.process(e);
         }

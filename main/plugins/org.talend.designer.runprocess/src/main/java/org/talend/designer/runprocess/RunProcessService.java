@@ -444,4 +444,24 @@ public class RunProcessService implements IRunProcessService {
         return delegateService.getAbsMavenArtifactPath(artifact);
     }
 
+    @Override
+    public ITalendProcessJavaProject getExistingTalendJobJavaProjectById(String id) {
+        return delegateService.getExistingTalendJobJavaProjectById(id);
+    }
+
+    @Override
+    public void deleteTalendJobJavaProject(Property property) {
+        delegateService.deleteTalendJobJavaProject(property);
+    }
+
+    @Override
+    public void removeFromAggregatorPomModule(Property property) {
+        delegateService.removeFromAggregatorPomModule(property);
+    }
+
+    @Override
+    public void addToAggregatorPomModule(Property property) {
+        delegateService.addToAggregatorPomModule(property);
+    }
+
 }

@@ -43,6 +43,7 @@ import org.talend.core.model.properties.JobletProcessItem;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
+import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.utils.ItemResourceUtil;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.ui.ITestContainerProviderService;
@@ -53,6 +54,7 @@ import org.talend.designer.maven.tools.creator.CreateMavenCodeProject;
 import org.talend.designer.maven.utils.PomIdsHelper;
 import org.talend.designer.maven.utils.TalendCodeProjectUtil;
 import org.talend.repository.ProjectManager;
+import org.talend.repository.RepositoryWorkUnit;
 
 /**
  * DOC zwxue class global comment. Detailled comment
@@ -66,68 +68,74 @@ public class TalendJavaProjectManager {
     private static ITalendProcessJavaProject tempJavaProject;
 
     public static void initJavaProjects(IProgressMonitor monitor, Project project) {
-        try {
-            AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
-            if (monitor == null) {
-                monitor = new NullProgressMonitor();
-            }
-            // create poms folder.
-            IFolder poms = createFolderIfNotExist(helper.getProjectPomsFolder(), monitor);
 
-            // codes
-            IFolder code = createFolderIfNotExist(poms.getFolder(DIR_CODES), monitor);
-            // routines
-            createFolderIfNotExist(code.getFolder(DIR_ROUTINES), monitor);
-            // pigudfs
-            if (ProcessUtils.isRequiredPigUDFs(null)) {
-                createFolderIfNotExist(code.getFolder(DIR_PIGUDFS), monitor);
-            }
-            // beans
-            if (ProcessUtils.isRequiredBeans(null)) {
-                createFolderIfNotExist(code.getFolder(DIR_BEANS), monitor);
-            }
+        RepositoryWorkUnit<Object> workUnit = new RepositoryWorkUnit<Object>("create aggregator poms") { //$NON-NLS-1$
 
-            // jobs
-            IFolder jobs = createFolderIfNotExist(poms.getFolder(DIR_JOBS), monitor);
-            // process
-            IFolder process = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS), monitor);
-            // process_mr
-            IFolder process_mr = null;
-            if (PluginChecker.isMapReducePluginLoader()) {
-                process_mr = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_MR), monitor);
-            }
-            // process_storm
-            IFolder process_storm = null;
-            if (PluginChecker.isStormPluginLoader()) {
-                process_storm = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_STORM), monitor);
-            }
-            // routes
-            IFolder routes = null;
-            if (PluginChecker.isRouteLoaded()) {
-                routes = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_ROUTES), monitor);
-            }
-            // services
-            IFolder services = null;
-            if (PluginChecker.isServiceLoaded()) {
-                services = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_SERVICES), monitor);
-            }
+            @Override
+            protected void run() {
+                try {
+                    // create aggregator poms
+                    AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
+                    // create poms folder.
+                    IFolder poms = createFolderIfNotExist(helper.getProjectPomsFolder(), monitor);
 
-            // create aggregator poms
-            String jobGroupId = PomIdsHelper.getJobGroupId(project.getTechnicalLabel());
-            helper.createAggregatorFolderPom(process, DIR_PROCESS, jobGroupId, monitor);
-            helper.createAggregatorFolderPom(process_mr, DIR_PROCESS_MR, jobGroupId, monitor);
-            helper.createAggregatorFolderPom(process_storm, DIR_PROCESS_STORM, jobGroupId, monitor);
-            helper.createAggregatorFolderPom(routes, DIR_PROCESS_ROUTES, jobGroupId, monitor);
-            helper.createAggregatorFolderPom(services, DIR_PROCESS_SERVICES, jobGroupId, monitor);
-            helper.createAggregatorFolderPom(jobs, DIR_JOBS, jobGroupId, monitor);
-            helper.createAggregatorFolderPom(code, DIR_CODES, "org.talend.codes." + project.getTechnicalLabel(), monitor); //$NON-NLS-1$
+                    // codes
+                    IFolder code = createFolderIfNotExist(poms.getFolder(DIR_CODES), monitor);
+                    // routines
+                    createFolderIfNotExist(code.getFolder(DIR_ROUTINES), monitor);
+                    // pigudfs
+                    if (ProcessUtils.isRequiredPigUDFs(null)) {
+                        createFolderIfNotExist(code.getFolder(DIR_PIGUDFS), monitor);
+                    }
+                    // beans
+                    if (ProcessUtils.isRequiredBeans(null)) {
+                        createFolderIfNotExist(code.getFolder(DIR_BEANS), monitor);
+                    }
 
-            helper.createRootPom(poms, monitor);
-        } catch (Exception e) {
-            ExceptionHandler.process(e);
-        }
+                    // jobs
+                    IFolder jobs = createFolderIfNotExist(poms.getFolder(DIR_JOBS), monitor);
+                    // process
+                    IFolder process = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS), monitor);
+                    // process_mr
+                    IFolder process_mr = null;
+                    if (PluginChecker.isMapReducePluginLoader()) {
+                        process_mr = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_MR), monitor);
+                    }
+                    // process_storm
+                    IFolder process_storm = null;
+                    if (PluginChecker.isStormPluginLoader()) {
+                        process_storm = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_STORM), monitor);
+                    }
+                    // routes
+                    IFolder routes = null;
+                    if (PluginChecker.isRouteLoaded()) {
+                        routes = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_ROUTES), monitor);
+                    }
+                    // services
+                    IFolder services = null;
+                    if (PluginChecker.isServiceLoaded()) {
+                        services = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_SERVICES), monitor);
+                    }
+
+                    String jobGroupId = PomIdsHelper.getJobGroupId(project.getTechnicalLabel());
+                    helper.createAggregatorFolderPom(process, DIR_PROCESS, jobGroupId, monitor);
+                    helper.createAggregatorFolderPom(process_mr, DIR_PROCESS_MR, jobGroupId, monitor);
+                    helper.createAggregatorFolderPom(process_storm, DIR_PROCESS_STORM, jobGroupId, monitor);
+                    helper.createAggregatorFolderPom(routes, DIR_PROCESS_ROUTES, jobGroupId, monitor);
+                    helper.createAggregatorFolderPom(services, DIR_PROCESS_SERVICES, jobGroupId, monitor);
+                    helper.createAggregatorFolderPom(jobs, DIR_JOBS, jobGroupId, monitor);
+                    helper.createAggregatorFolderPom(code, DIR_CODES, "org.talend.codes." + project.getTechnicalLabel(), monitor); //$NON-NLS-1$
+
+                    helper.createRootPom(poms, monitor);
+                } catch (Exception e) {
+                    ExceptionHandler.process(e);
+                }
+            }
+        };
+        workUnit.setAvoidUnloadResources(true);
+        ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
     }
-    
+
     public static void installRootPom(boolean current) {
         AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
         try {
@@ -200,7 +208,8 @@ public class TalendJavaProjectManager {
                 IFolder jobFolder = helper.getProcessFolder(type).getFolder(itemRelativePath).getFolder(jobFolderName);
                 if (!jobProject.exists() || TalendCodeProjectUtil.needRecreate(monitor, jobProject)) {
                     createMavenJavaProject(monitor, jobProject, jobFolder);
-                    AggregatorPomsHelper.updatePomIfCreate(monitor, jobProject.getFile(TalendMavenConstants.POM_FILE_NAME), property);
+                    AggregatorPomsHelper.updatePomIfCreate(monitor, jobProject.getFile(TalendMavenConstants.POM_FILE_NAME),
+                            property);
                 }
                 IJavaProject javaProject = JavaCore.create(jobProject);
                 if (!javaProject.isOpen()) {
@@ -242,7 +251,7 @@ public class TalendJavaProjectManager {
         return tempJavaProject;
     }
 
-    public static ITalendProcessJavaProject getExistedTalendProject(IProject project) {
+    public static ITalendProcessJavaProject getExistingTalendProject(IProject project) {
         List<ITalendProcessJavaProject> talendProjects = new ArrayList<>();
         talendProjects.addAll(talendCodeJavaProjects.values());
         talendProjects.addAll(talendJobJavaProjects.values());
@@ -253,6 +262,31 @@ public class TalendJavaProjectManager {
             }
         }
         return null;
+    }
+    
+    public static ITalendProcessJavaProject getExistingTalendJobProjectById(String id) {
+        return talendJobJavaProjects.get(id);
+    }
+    
+    public static void deleteTalendJobProject(Property property) {
+        ITalendProcessJavaProject projectToDelete = talendJobJavaProjects.get(property.getId());
+        if (projectToDelete != null) {
+            RepositoryWorkUnit workUnit = new RepositoryWorkUnit<Object>("Delete job project") { //$NON-NLS-1$
+
+                @Override
+                protected void run() {
+                    try {
+                        projectToDelete.getProject().delete(true, true, null);
+                    } catch (CoreException e) {
+                        ExceptionHandler.process(e);
+                    }
+                }
+            };
+            workUnit.setAvoidUnloadResources(true);
+            ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
+            
+            talendJobJavaProjects.remove(property.getId());
+        }
     }
 
     private static void createMavenJavaProject(IProgressMonitor monitor, IProject jobProject, IFolder projectFolder)
@@ -283,10 +317,6 @@ public class TalendJavaProjectManager {
             folder.create(true, true, monitor);
         }
         return folder;
-    }
-
-    public static void removeDeletedJavaProject() {
-        // TODO when do delete in repo, remove javaProject, remove it from maps.
     }
 
     public static void createUserDefineFolder() {

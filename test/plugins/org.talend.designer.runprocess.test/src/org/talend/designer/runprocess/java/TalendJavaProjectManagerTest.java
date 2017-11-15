@@ -162,9 +162,9 @@ public class TalendJavaProjectManagerTest {
 
         TalendJavaProjectManager.deleteEclipseProjectByNatureId(TalendJobNature.ID);
 
-        assertFalse(TalendJavaProjectManager.getExistedTalendProject(routinesProject.getProject()).getProject().exists());
-        assertFalse(TalendJavaProjectManager.getExistedTalendProject(jobProject.getProject()).getProject().exists());
-        assertFalse(TalendJavaProjectManager.getExistedTalendProject(tempProject.getProject()).getProject().exists());
+        assertFalse(TalendJavaProjectManager.getExistingTalendProject(routinesProject.getProject()).getProject().exists());
+        assertFalse(TalendJavaProjectManager.getExistingTalendProject(jobProject.getProject()).getProject().exists());
+        assertFalse(TalendJavaProjectManager.getExistingTalendProject(tempProject.getProject()).getProject().exists());
     }
 
     private void validateProject(ITalendProcessJavaProject talendJavaProject) throws Exception {

@@ -63,6 +63,7 @@ import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.projectsetting.ProjectPreferenceManager;
 import org.talend.core.service.IESBMicroService;
 import org.talend.core.ui.ITestContainerProviderService;
+import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.ProjectPomManager;
 import org.talend.designer.maven.utils.PomUtil;
@@ -677,6 +678,48 @@ public class DefaultRunProcessService implements IRunProcessService {
     @Override
     public String getAbsMavenArtifactPath(MavenArtifact artifact) {
         return PomUtil.getAbsArtifactPath(artifact);
+    }
+
+    @Override
+    public ITalendProcessJavaProject getExistingTalendJobJavaProjectById(String id) {
+        return TalendJavaProjectManager.getExistingTalendJobProjectById(id);
+    }
+
+    @Override
+    public void deleteTalendJobJavaProject(Property property) {
+        TalendJavaProjectManager.deleteTalendJobProject(property);
+    }
+
+    @Override
+    public void removeFromAggregatorPomModule(Property property) {
+        ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
+        if (ERepositoryObjectType.getAllTypesOfProcess().contains(type)) {
+            ITalendProcessJavaProject jobProject = getExistingTalendJobJavaProjectById(property.getId());
+            if (jobProject != null) {
+                try {
+                    AggregatorPomsHelper.removeFromParentModules(jobProject.getProjectPom());
+                } catch (Exception e) {
+                    ExceptionHandler.process(e);
+                }
+            }
+        }
+        
+    }
+
+    @Override
+    public void addToAggregatorPomModule(Property property) {
+        ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
+        if (ERepositoryObjectType.getAllTypesOfProcess().contains(type)) {
+            ITalendProcessJavaProject jobProject = getExistingTalendJobJavaProjectById(property.getId());
+            if (jobProject != null) {
+                try {
+                    AggregatorPomsHelper.addToParentModules(jobProject.getProjectPom());
+                } catch (Exception e) {
+                    ExceptionHandler.process(e);
+                }
+            }
+        }
+        
     }
 
 }
