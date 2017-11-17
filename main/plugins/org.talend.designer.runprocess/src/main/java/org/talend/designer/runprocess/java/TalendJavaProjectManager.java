@@ -117,14 +117,14 @@ public class TalendJavaProjectManager {
                         services = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_SERVICES), monitor);
                     }
 
-                    String jobGroupId = PomIdsHelper.getJobGroupId(project.getTechnicalLabel());
+                    String jobGroupId = PomIdsHelper.getJobGroupId(project.getTechnicalLabel().toLowerCase());
                     helper.createAggregatorFolderPom(process, DIR_PROCESS, jobGroupId, monitor);
                     helper.createAggregatorFolderPom(process_mr, DIR_PROCESS_MR, jobGroupId, monitor);
                     helper.createAggregatorFolderPom(process_storm, DIR_PROCESS_STORM, jobGroupId, monitor);
                     helper.createAggregatorFolderPom(routes, DIR_PROCESS_ROUTES, jobGroupId, monitor);
                     helper.createAggregatorFolderPom(services, DIR_PROCESS_SERVICES, jobGroupId, monitor);
                     helper.createAggregatorFolderPom(jobs, DIR_JOBS, jobGroupId, monitor);
-                    helper.createAggregatorFolderPom(code, DIR_CODES, "org.talend.codes." + project.getTechnicalLabel(), monitor); //$NON-NLS-1$
+                    helper.createAggregatorFolderPom(code, DIR_CODES, "org.talend.codes." + project.getTechnicalLabel().toLowerCase(), monitor); //$NON-NLS-1$
 
                     helper.createRootPom(poms, monitor);
                 } catch (Exception e) {
@@ -155,7 +155,7 @@ public class TalendJavaProjectManager {
                 IProgressMonitor monitor = new NullProgressMonitor();
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
                 IFolder codeProjectFolder = helper.getProjectPomsFolder().getFolder(type.getFolder());
-                IProject codeProject = root.getProject(project.getTechnicalLabel() + "_" + type.name());
+                IProject codeProject = root.getProject((project.getTechnicalLabel() + "_" + type.name()).toUpperCase()); //$NON-NLS-1$
                 if (!codeProject.exists() || TalendCodeProjectUtil.needRecreate(monitor, codeProject)) {
                     createMavenJavaProject(monitor, codeProject, codeProjectFolder);
                 }
@@ -203,7 +203,7 @@ public class TalendJavaProjectManager {
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
                 IProject jobProject = root.getProject(project.getTechnicalLabel() + "_" + property.getLabel()); //$NON-NLS-1$
                 IPath itemRelativePath = ItemResourceUtil.getItemRelativePath(property);
-                String jobFolderName = "item_" + property.getLabel(); //$NON-NLS-1$
+                String jobFolderName = ("item_" + property.getLabel()).toUpperCase(); //$NON-NLS-1$
                 ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
                 IFolder jobFolder = helper.getProcessFolder(type).getFolder(itemRelativePath).getFolder(jobFolderName);
                 if (!jobProject.exists() || TalendCodeProjectUtil.needRecreate(monitor, jobProject)) {
