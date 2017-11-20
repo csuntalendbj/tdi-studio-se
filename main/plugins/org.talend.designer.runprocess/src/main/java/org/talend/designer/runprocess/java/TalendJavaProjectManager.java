@@ -201,7 +201,7 @@ public class TalendJavaProjectManager {
                     || !talendJobJavaProject.getProject().exists()) {
                 IProgressMonitor monitor = new NullProgressMonitor();
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-                IProject jobProject = root.getProject(project.getTechnicalLabel() + "_" + property.getLabel()); //$NON-NLS-1$
+                IProject jobProject = root.getProject((project.getTechnicalLabel() + "_" + property.getLabel()).toUpperCase()); //$NON-NLS-1$
                 IPath itemRelativePath = ItemResourceUtil.getItemRelativePath(property);
                 String jobFolderName = ("item_" + property.getLabel()).toUpperCase(); //$NON-NLS-1$
                 ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());

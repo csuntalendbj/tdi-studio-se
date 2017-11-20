@@ -19,13 +19,14 @@
 		<talend.job.package>@JobPackage@</talend.job.package>
 
 		<!-- for jobInfo.properties -->
+		<maven.build.timestamp.format>@JobDateFormat@</maven.build.timestamp.format>
 		<talend.project.name>@ProjectName@</talend.project.name>
 		<talend.project.name.lowercase>@ProjectName@</talend.project.name.lowercase>
 		<talend.project.id>@ProjectId@</talend.project.id>
 		<talend.project.branch>@ProjectBranch@</talend.project.branch>
 		<talend.job.name>@JobName@</talend.job.name>
 		<talend.job.version>@TalendJobVersion@</talend.job.version>
-		<talend.job.date>@JobDate@</talend.job.date>
+		<talend.job.date>${maven.build.timestamp}</talend.job.date>
 		<talend.job.context>@JobContext@</talend.job.context>
 		<talend.job.id>@JobId@</talend.job.id>
 		<talend.job.type>@JobType@</talend.job.type>
