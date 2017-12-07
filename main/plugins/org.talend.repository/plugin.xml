@@ -3124,6 +3124,15 @@
             id="projectsetting.JavaVersion"
             title="%ProjectSetting_JavaVersion">
       </page>
+      <page
+            category="projectsetting.Maven"
+            class="org.talend.repository.preference.MavenDeploymentConfigurationProjectSettingPage"
+            id="org.talend.repository.preference.MavenDeploymentConfigurationProjectSettingPage"
+            title="%projectSetting.deploymentConfiguration">
+         <tester
+               class="org.talend.repository.preference.MavenDeploymentConfigurationProjectSettingPageTester">
+         </tester>
+      </page>
    </extension>
    <extension
          id="CreateAutomaticConnectionApplication"

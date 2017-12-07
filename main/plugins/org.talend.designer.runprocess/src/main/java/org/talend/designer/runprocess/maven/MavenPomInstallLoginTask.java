@@ -15,8 +15,6 @@ package org.talend.designer.runprocess.maven;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.talend.commons.exception.ExceptionHandler;
@@ -25,7 +23,6 @@ import org.talend.core.model.process.ProcessUtils;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
-import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.runprocess.java.TalendJavaProjectManager;
@@ -51,14 +48,10 @@ public class MavenPomInstallLoginTask extends AbstractLoginTask implements IRunn
             AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
             helper.installRootPom(true);
 
-            installAggregatorFolderPoms(helper);
-
             List<Project> references = ProjectManager.getInstance().getReferencedProjects();
             for (Project ref : references) {
                 AggregatorPomsHelper refHelper = new AggregatorPomsHelper(ref);
                 refHelper.installRootPom(true);
-                // FIXME for reference project, not sure what case will need it.
-                // installAggregatorFolderPoms(refHelper);
             }
             RepositoryWorkUnit workUnit = new RepositoryWorkUnit<Object>("update code project") { //$NON-NLS-1$
 
@@ -75,22 +68,9 @@ public class MavenPomInstallLoginTask extends AbstractLoginTask implements IRunn
             };
             workUnit.setAvoidUnloadResources(true);
             ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
-            
+
         } catch (Exception e) {
             ExceptionHandler.process(e);
-        }
-    }
-
-    private void installAggregatorFolderPoms(AggregatorPomsHelper helper) throws Exception {
-        // codes
-        helper.installPom(helper.getCodesFolder().getFile(TalendMavenConstants.POM_FILE_NAME), true);
-        // jobs
-        helper.installPom(helper.getProcessesFolder().getFile(TalendMavenConstants.POM_FILE_NAME), true);
-        // process, process_mr, process_storm, route, service
-        for (IResource res : helper.getProcessesFolder().members()) {
-            if (res instanceof IFolder) {
-                helper.installPom(((IFolder) res).getFile(TalendMavenConstants.POM_FILE_NAME), true);
-            }
         }
     }
 

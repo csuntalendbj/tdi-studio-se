@@ -12,7 +12,7 @@
 	<groupId>@JobGroupId@</groupId>
 	<artifactId>@JobArtifactId@</artifactId>
 	<version>@JobVersion@</version>
-	<name>@ProjectName@ @JobName@ (@JobType@)</name>
+	<name>@ProjectName@ @JobName@-@JobVersion@ (@TalendJobVersion@,@JobType@)</name>
 
 	<properties>
 		<talend.job.path>@JobPath@</talend.job.path>

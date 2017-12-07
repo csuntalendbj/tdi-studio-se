@@ -80,8 +80,6 @@ public class TalendJavaProjectManagerTest {
 
         IFolder codesFolder = pomsFolder.getFolder(TalendJavaProjectConstants.DIR_CODES);
         assertTrue(codesFolder.exists());
-        IFile codesPom = codesFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
-        assertTrue(codesPom.exists());
         IFolder routinesFolder = codesFolder.getFolder(TalendJavaProjectConstants.DIR_ROUTINES);
         assertTrue(routinesFolder.exists());
         IFile routinesPom = routinesFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
@@ -89,36 +87,24 @@ public class TalendJavaProjectManagerTest {
 
         IFolder jobsFolder = pomsFolder.getFolder(TalendJavaProjectConstants.DIR_JOBS);
         assertTrue(jobsFolder.exists());
-        IFile jobsPom = jobsFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
-        assertTrue(jobsPom.exists());
         IFolder processFolder = jobsFolder.getFolder(TalendJavaProjectConstants.DIR_PROCESS);
         assertTrue(processFolder.exists());
-        IFile processPom = processFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
-        assertTrue(processPom.exists());
-        
+
         if (PluginChecker.isMapReducePluginLoader()) {
             IFolder processMRFolder = jobsFolder.getFolder(TalendJavaProjectConstants.DIR_PROCESS_MR);
             assertTrue(processMRFolder.exists());
-            IFile processMRPom = processFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
-            assertTrue(processMRPom.exists());
         }
         if (PluginChecker.isStormPluginLoader()) {
             IFolder processStormFolder = jobsFolder.getFolder(TalendJavaProjectConstants.DIR_PROCESS_STORM);
             assertTrue(processStormFolder.exists());
-            IFile processStormPom = processFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
-            assertTrue(processStormPom.exists());
         }
         if (PluginChecker.isRouteLoaded()) {
             IFolder processRouteFolder = jobsFolder.getFolder(TalendJavaProjectConstants.DIR_PROCESS_ROUTES);
             assertTrue(processRouteFolder.exists());
-            IFile processRoutePom = processFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
-            assertTrue(processRoutePom.exists());
         }
         if (PluginChecker.isServiceLoaded()) {
             IFolder processServiceFolder = jobsFolder.getFolder(TalendJavaProjectConstants.DIR_PROCESS_SERVICES);
             assertTrue(processServiceFolder.exists());
-            IFile processServicePom = processFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
-            assertTrue(processServicePom.exists());
         }
     }
 
@@ -140,7 +126,8 @@ public class TalendJavaProjectManagerTest {
 
         validateProject(talendJavaProject);
 
-        String projectTechName = ProjectManager.getInstance().getCurrentProject().getTechnicalLabel() + "_" + property.getLabel();
+        String projectTechName = ProjectManager.getInstance().getCurrentProject().getTechnicalLabel() + "_"
+                + property.getLabel().toUpperCase() + "_" + property.getVersion();
         assertEquals(projectTechName, talendJavaProject.getProject().getName());
     }
 

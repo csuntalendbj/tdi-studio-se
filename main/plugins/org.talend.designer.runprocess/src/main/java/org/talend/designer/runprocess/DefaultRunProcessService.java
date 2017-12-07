@@ -681,45 +681,13 @@ public class DefaultRunProcessService implements IRunProcessService {
     }
 
     @Override
-    public ITalendProcessJavaProject getExistingTalendJobJavaProjectById(String id) {
-        return TalendJavaProjectManager.getExistingTalendJobProjectById(id);
+    public ITalendProcessJavaProject getExistingTalendJobJavaProject(String id, String version) {
+        return TalendJavaProjectManager.getExistingTalendJobProject(id, version);
     }
 
     @Override
-    public void deleteTalendJobJavaProject(Property property) {
-        TalendJavaProjectManager.deleteTalendJobProject(property);
-    }
-
-    @Override
-    public void removeFromAggregatorPomModule(Property property) {
-        ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
-        if (ERepositoryObjectType.getAllTypesOfProcess().contains(type)) {
-            ITalendProcessJavaProject jobProject = getExistingTalendJobJavaProjectById(property.getId());
-            if (jobProject != null) {
-                try {
-                    AggregatorPomsHelper.removeFromParentModules(jobProject.getProjectPom());
-                } catch (Exception e) {
-                    ExceptionHandler.process(e);
-                }
-            }
-        }
-        
-    }
-
-    @Override
-    public void addToAggregatorPomModule(Property property) {
-        ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
-        if (ERepositoryObjectType.getAllTypesOfProcess().contains(type)) {
-            ITalendProcessJavaProject jobProject = getExistingTalendJobJavaProjectById(property.getId());
-            if (jobProject != null) {
-                try {
-                    AggregatorPomsHelper.addToParentModules(jobProject.getProjectPom());
-                } catch (Exception e) {
-                    ExceptionHandler.process(e);
-                }
-            }
-        }
-        
+    public void deleteAllVersionTalendJobProject(String id) {
+        TalendJavaProjectManager.deleteAllVersionTalendJobProject(id);
     }
 
 }

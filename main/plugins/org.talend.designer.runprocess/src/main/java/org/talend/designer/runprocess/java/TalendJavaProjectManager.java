@@ -14,14 +14,20 @@ package org.talend.designer.runprocess.java;
 
 import static org.talend.designer.maven.model.TalendJavaProjectConstants.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -43,6 +49,7 @@ import org.talend.core.model.properties.JobletProcessItem;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
+import org.talend.core.model.repository.IRepositoryViewObject;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.utils.ItemResourceUtil;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
@@ -51,10 +58,11 @@ import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.creator.CreateMavenCodeProject;
-import org.talend.designer.maven.utils.PomIdsHelper;
 import org.talend.designer.maven.utils.TalendCodeProjectUtil;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.RepositoryWorkUnit;
+import org.talend.repository.utils.DeploymentConfsUtils;
+import org.talend.utils.io.FilesUtils;
 
 /**
  * DOC zwxue class global comment. Detailled comment
@@ -79,6 +87,11 @@ public class TalendJavaProjectManager {
                     // create poms folder.
                     IFolder poms = createFolderIfNotExist(helper.getProjectPomsFolder(), monitor);
 
+                    // deployments
+                    if (PluginChecker.isTIS()) {
+                        createFolderIfNotExist(poms.getFolder(DIR_DEPLOYMENTS), monitor);
+                    }
+
                     // codes
                     IFolder code = createFolderIfNotExist(poms.getFolder(DIR_CODES), monitor);
                     // routines
@@ -95,37 +108,23 @@ public class TalendJavaProjectManager {
                     // jobs
                     IFolder jobs = createFolderIfNotExist(poms.getFolder(DIR_JOBS), monitor);
                     // process
-                    IFolder process = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS), monitor);
+                    createFolderIfNotExist(jobs.getFolder(DIR_PROCESS), monitor);
                     // process_mr
-                    IFolder process_mr = null;
                     if (PluginChecker.isMapReducePluginLoader()) {
-                        process_mr = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_MR), monitor);
+                        createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_MR), monitor);
                     }
                     // process_storm
-                    IFolder process_storm = null;
                     if (PluginChecker.isStormPluginLoader()) {
-                        process_storm = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_STORM), monitor);
+                        createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_STORM), monitor);
                     }
                     // routes
-                    IFolder routes = null;
                     if (PluginChecker.isRouteLoaded()) {
-                        routes = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_ROUTES), monitor);
+                        createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_ROUTES), monitor);
                     }
                     // services
-                    IFolder services = null;
                     if (PluginChecker.isServiceLoaded()) {
-                        services = createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_SERVICES), monitor);
+                        createFolderIfNotExist(jobs.getFolder(DIR_PROCESS_SERVICES), monitor);
                     }
-
-                    String jobGroupId = PomIdsHelper.getJobGroupId(project.getTechnicalLabel().toLowerCase());
-                    helper.createAggregatorFolderPom(process, DIR_PROCESS, jobGroupId, monitor);
-                    helper.createAggregatorFolderPom(process_mr, DIR_PROCESS_MR, jobGroupId, monitor);
-                    helper.createAggregatorFolderPom(process_storm, DIR_PROCESS_STORM, jobGroupId, monitor);
-                    helper.createAggregatorFolderPom(routes, DIR_PROCESS_ROUTES, jobGroupId, monitor);
-                    helper.createAggregatorFolderPom(services, DIR_PROCESS_SERVICES, jobGroupId, monitor);
-                    helper.createAggregatorFolderPom(jobs, DIR_JOBS, jobGroupId, monitor);
-                    helper.createAggregatorFolderPom(code, DIR_CODES, "org.talend.codes." + project.getTechnicalLabel().toLowerCase(), monitor); //$NON-NLS-1$
-
                     helper.createRootPom(poms, monitor);
                 } catch (Exception e) {
                     ExceptionHandler.process(e);
@@ -196,14 +195,15 @@ public class TalendJavaProjectManager {
             String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
             Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
             AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
-            talendJobJavaProject = talendJobJavaProjects.get(property.getId());
+            String jobProjectId = AggregatorPomsHelper.getJobProjectId(property);
+            talendJobJavaProject = talendJobJavaProjects.get(jobProjectId);
             if (talendJobJavaProject == null || talendJobJavaProject.getProject() == null
                     || !talendJobJavaProject.getProject().exists()) {
                 IProgressMonitor monitor = new NullProgressMonitor();
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-                IProject jobProject = root.getProject((project.getTechnicalLabel() + "_" + property.getLabel()).toUpperCase()); //$NON-NLS-1$
+                IProject jobProject = root.getProject(AggregatorPomsHelper.getJobProjectName(project, property));
                 IPath itemRelativePath = ItemResourceUtil.getItemRelativePath(property);
-                String jobFolderName = ("item_" + property.getLabel()).toUpperCase(); //$NON-NLS-1$
+                String jobFolderName = AggregatorPomsHelper.getJobProjectFolderName(property);
                 ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
                 IFolder jobFolder = helper.getProcessFolder(type).getFolder(itemRelativePath).getFolder(jobFolderName);
                 if (!jobProject.exists() || TalendCodeProjectUtil.needRecreate(monitor, jobProject)) {
@@ -221,7 +221,7 @@ public class TalendJavaProjectManager {
                     pomSynchronizer.syncTemplates(false);
                     pomSynchronizer.cleanMavenFiles(monitor);
                 }
-                talendJobJavaProjects.put(property.getId(), talendJobJavaProject);
+                talendJobJavaProjects.put(jobProjectId, talendJobJavaProject);
             }
         } catch (Exception e) {
             ExceptionHandler.process(e);
@@ -263,30 +263,68 @@ public class TalendJavaProjectManager {
         }
         return null;
     }
-    
-    public static ITalendProcessJavaProject getExistingTalendJobProjectById(String id) {
-        return talendJobJavaProjects.get(id);
-    }
-    
-    public static void deleteTalendJobProject(Property property) {
-        ITalendProcessJavaProject projectToDelete = talendJobJavaProjects.get(property.getId());
-        if (projectToDelete != null) {
-            RepositoryWorkUnit workUnit = new RepositoryWorkUnit<Object>("Delete job project") { //$NON-NLS-1$
 
-                @Override
-                protected void run() {
-                    try {
-                        projectToDelete.getProject().delete(true, true, null);
-                    } catch (CoreException e) {
-                        ExceptionHandler.process(e);
-                    }
-                }
-            };
-            workUnit.setAvoidUnloadResources(true);
-            ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
-            
-            talendJobJavaProjects.remove(property.getId());
+    public static ITalendProcessJavaProject getExistingTalendJobProject(String id, String version) {
+        return talendJobJavaProjects.get(AggregatorPomsHelper.getJobProjectId(id, version));
+    }
+
+    public static Set<ITalendProcessJavaProject> getExistingAllVersionTalendJobProject(String id) {
+        Set<ITalendProcessJavaProject> allVersionProjects = new HashSet<>();
+        for (Entry<String, ITalendProcessJavaProject> entry : talendJobJavaProjects.entrySet()) {
+            String key = entry.getKey();
+            if (key.contains(id)) {
+                allVersionProjects.add(entry.getValue());
+            }
         }
+        return allVersionProjects;
+    }
+
+    public static void deleteAllVersionTalendJobProject(String id) {
+
+        RepositoryWorkUnit workUnit = new RepositoryWorkUnit<Object>("Delete job project") { //$NON-NLS-1$
+
+            @Override
+            protected void run() {
+                try {
+                    AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
+                    List<IRepositoryViewObject> allVersionObjects = ProxyRepositoryFactory.getInstance().getAllVersion(id);
+                    Set<String> removedVersions = new HashSet<>();
+                    Iterator<String> iterator = talendJobJavaProjects.keySet().iterator();
+                    // delete exist project
+                    while (iterator.hasNext()) {
+                        String key = iterator.next();
+                        if (key.contains(id)) {
+                            ITalendProcessJavaProject projectToDelete = talendJobJavaProjects.get(key);
+                            projectToDelete.getProject().delete(true, true, null);
+                            String version = key.split("\\|")[1]; //$NON-NLS-1$
+                            removedVersions.add(version);
+                            iterator.remove();
+                        }
+                    }
+                    // for logically deleted project, delete the folder directly
+                    for (IRepositoryViewObject object : allVersionObjects) {
+                        String realVersion = object.getVersion();
+                        if (!removedVersions.contains(realVersion)) {
+                            IPath path = DeploymentConfsUtils.getJobProjectPath(object.getProperty(), realVersion);
+                            File projectFolder = path.toFile();
+                            if (projectFolder.exists()) {
+                                FilesUtils.deleteFolder(projectFolder, true);
+                            }
+                        }
+                    }
+                    helper.getProjectPomsFolder().refreshLocal(IResource.DEPTH_INFINITE, null);
+                } catch (Exception e) {
+                    ExceptionHandler.process(e);
+                }
+            }
+        };
+        workUnit.setAvoidUnloadResources(true);
+        ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
+    }
+
+    public static void deleteRemovedOrRenamedJobProject(String id) {
+        // TODO check rename and move actions
+        // also all versions to be remove.
     }
 
     private static void createMavenJavaProject(IProgressMonitor monitor, IProject jobProject, IFolder projectFolder)
@@ -317,22 +355,6 @@ public class TalendJavaProjectManager {
             folder.create(true, true, monitor);
         }
         return folder;
-    }
-
-    public static void createUserDefineFolder() {
-        // TODO call it when create folders in repo, add aggregator pom, add it to parent modules.
-    }
-
-    public static void removeUserDefineFolder() {
-        // TODO
-    }
-
-    public static void moveUserDefineFolder() {
-        // TODO
-    }
-
-    public static void renameUserDefineFolder() {
-        // TODO
     }
 
     public static void deleteEclipseProjectByNatureId(String natureId) throws CoreException {

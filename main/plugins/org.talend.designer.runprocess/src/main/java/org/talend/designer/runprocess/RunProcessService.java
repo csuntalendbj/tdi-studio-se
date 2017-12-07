@@ -445,23 +445,13 @@ public class RunProcessService implements IRunProcessService {
     }
 
     @Override
-    public ITalendProcessJavaProject getExistingTalendJobJavaProjectById(String id) {
-        return delegateService.getExistingTalendJobJavaProjectById(id);
+    public ITalendProcessJavaProject getExistingTalendJobJavaProject(String id, String version) {
+        return delegateService.getExistingTalendJobJavaProject(id, version);
     }
 
     @Override
-    public void deleteTalendJobJavaProject(Property property) {
-        delegateService.deleteTalendJobJavaProject(property);
-    }
-
-    @Override
-    public void removeFromAggregatorPomModule(Property property) {
-        delegateService.removeFromAggregatorPomModule(property);
-    }
-
-    @Override
-    public void addToAggregatorPomModule(Property property) {
-        delegateService.addToAggregatorPomModule(property);
+    public void deleteAllVersionTalendJobProject(String id) {
+        delegateService.deleteAllVersionTalendJobProject(id);
     }
 
 }
