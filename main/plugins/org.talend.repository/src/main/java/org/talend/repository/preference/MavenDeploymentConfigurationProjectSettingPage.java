@@ -395,6 +395,11 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
                 return false;
             }
         }
+
+        if (node.getObject() != null && !ProjectManager.getInstance().isInCurrentMainProject(node.getObject().getProperty())) {
+            return false;
+        }
+
         if (type == ERepositoryObjectType.FOLDER) {
             if (node.getObject() instanceof Folder) {
                 type = ((Folder) node.getObject()).getContentType();
@@ -532,7 +537,11 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
                         for (Object obj : selectedElement) {
                             if (obj instanceof RepositoryNode) {
                                 RepositoryNode node = (RepositoryNode) obj;
-                                addToModules(node.getObject(), modules);
+                                // FIXME should filter all non-process type from node.
+                                // remove ref project nodes.
+                                if (node.getObjectType() != null && filterRepositoryNode(node)) {
+                                    addToModules(node.getObject(), modules);
+                                }
                             }
                         }
                         addCodesModules(modules);
@@ -566,7 +575,7 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
                 } else {
                     subJobObject = factory.getSpecificVersion(id, version, true);
                 }
-                if (subJobObject != null) {
+                if (subJobObject != null && ProjectManager.getInstance().isInCurrentMainProject(subJobObject.getProperty())) {
                     addToModules(subJobObject, modules);
                 }
             }
@@ -580,12 +589,12 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
         String BEANS = TalendJavaProjectConstants.DIR_BEANS;
         String SEPARATOR = "|"; //$NON-NLS-1$
         String SLASH = "/"; //$NON-NLS-1$
-        modules.put(CODES + SEPARATOR + ROUTINES, "../../"+ CODES + SLASH + ROUTINES); //$NON-NLS-1$
+        modules.put(CODES + SEPARATOR + ROUTINES, "../../" + CODES + SLASH + ROUTINES); //$NON-NLS-1$
         if (ProcessUtils.isRequiredPigUDFs(null)) {
-            modules.put(CODES + SEPARATOR + PIGUDF, "../../"+ CODES + SLASH + PIGUDF); //$NON-NLS-1$
+            modules.put(CODES + SEPARATOR + PIGUDF, "../../" + CODES + SLASH + PIGUDF); //$NON-NLS-1$
         }
         if (ProcessUtils.isRequiredBeans(null)) {
-            modules.put(CODES + SEPARATOR + BEANS, "../../"+ CODES + SLASH + BEANS); //$NON-NLS-1$
+            modules.put(CODES + SEPARATOR + BEANS, "../../" + CODES + SLASH + BEANS); //$NON-NLS-1$
         }
     }
 
