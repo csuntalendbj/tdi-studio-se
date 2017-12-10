@@ -522,6 +522,9 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
 
     @Override
     public boolean performOk() {
+        if (confsModels == null) {
+            return true;
+        }
         RepositoryWorkUnit<Object> workUnit = new RepositoryWorkUnit<Object>("update deployment confs") { //$NON-NLS-1$
 
             @Override
