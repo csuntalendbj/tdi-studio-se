@@ -2955,6 +2955,13 @@
               name="Fill the default db version of mssql for Jobsetting"
               version="6.3.1">
         </projecttask>
+        <projecttask
+              beforeLogon="true"
+              class="org.talend.repository.model.migration.UpdateGitIgnoreMigrationTask"
+              id="org.talend.repository.model.migration.UpdateGitIgnoreMigrationTask"
+              name="UpdateGitIgnoreMigrationTask"
+              version="7.0.1">
+        </projecttask>
    </extension>
 
    <extension
