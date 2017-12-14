@@ -279,6 +279,31 @@ public class TalendJavaProjectManager {
         return allVersionProjects;
     }
 
+    public static void deleteTalendJobProjectsUnderFolder(IPath folderPath, ERepositoryObjectType processType,
+            boolean skipExist) {
+        try {
+            if (!skipExist) {
+                // delete exist project
+                Iterator<String> iterator = talendJobJavaProjects.keySet().iterator();
+                while (iterator.hasNext()) {
+                    String key = iterator.next();
+                    ITalendProcessJavaProject project = talendJobJavaProjects.get(key);
+                    IPath jobPath = ItemResourceUtil.getItemRelativePath(project.getPropery());
+                    if (folderPath.isPrefixOf(jobPath)) {
+                        project.getProject().delete(true, true, null);
+                        iterator.remove();
+                    }
+                }
+            }
+            // delete folder
+            AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
+            IFolder folder = helper.getProcessFolder(processType).getFolder(folderPath);
+            folder.delete(true, false, null);
+        } catch (CoreException e) {
+            ExceptionHandler.process(e);
+        }
+    }
+
     public static void deleteAllVersionTalendJobProject(String id) {
 
         RepositoryWorkUnit workUnit = new RepositoryWorkUnit<Object>("Delete job project") { //$NON-NLS-1$
@@ -320,11 +345,6 @@ public class TalendJavaProjectManager {
         };
         workUnit.setAvoidUnloadResources(true);
         ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
-    }
-
-    public static void deleteRemovedOrRenamedJobProject(String id) {
-        // TODO check rename and move actions
-        // also all versions to be remove.
     }
 
     private static void createMavenJavaProject(IProgressMonitor monitor, IProject jobProject, IFolder projectFolder)

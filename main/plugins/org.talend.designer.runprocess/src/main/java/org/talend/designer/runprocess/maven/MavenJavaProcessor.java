@@ -68,10 +68,7 @@ public class MavenJavaProcessor extends JavaProcessor {
     @Override
     public void generateCode(boolean statistics, boolean trace, boolean javaProperties, int option) throws ProcessorException {
         super.generateCode(statistics, trace, javaProperties, option);
-        if (isStandardJob()) {
-            // for job
-            generatePom(option);
-        } else {
+        if (!isStandardJob()) {
             // for Shadow Process/Data Preview
             try {
                 PomUtil.updatePomDependenciesFromProcessor(this);
@@ -220,7 +217,7 @@ public class MavenJavaProcessor extends JavaProcessor {
         }
     }
 
-    protected void generatePom(int option) {
+    public void generatePom(int option) {
         initJobClasspath();
 
         try {
