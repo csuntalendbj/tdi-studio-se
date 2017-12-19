@@ -131,7 +131,7 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
         noDefaultAndApplyButton();
 
         root = new ProjectRepositoryNode(null, null, ENodeType.STABLE_SYSTEM_FOLDER);
-        root.setOptions(IRepositoryFactory.OPTION_DYNAMIC_OBJECTS);
+        root.setOptions(IRepositoryFactory.OPTION_ALL_VERSION | IRepositoryFactory.OPTION_SKIP_DELETED);
         root.initialize(null);
         deploymentConfsUtils = new DeploymentConfsUtils(ProjectManager.getInstance().getCurrentProject());
     }
@@ -537,6 +537,7 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
                         Set<Object> selectedElement = confModel.getElements();
                         Map<String, String> modules = confModel.getModules();
                         modules.clear();
+                        addCodesModules(modules);
                         for (Object obj : selectedElement) {
                             if (obj instanceof RepositoryNode) {
                                 RepositoryNode node = (RepositoryNode) obj;
@@ -547,7 +548,6 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
                                 }
                             }
                         }
-                        addCodesModules(modules);
                         deploymentConfsUtils.writeConfModelToJsonFile(confModel);
                     }
                 } catch (Exception e) {
@@ -586,18 +586,20 @@ public class MavenDeploymentConfigurationProjectSettingPage extends ProjectSetti
     }
 
     protected void addCodesModules(Map<String, String> modules) {
+        String KEY = "modules"; //$NON-NLS-1$
         String CODES = TalendJavaProjectConstants.DIR_CODES;
         String ROUTINES = TalendJavaProjectConstants.DIR_ROUTINES;
         String PIGUDF = TalendJavaProjectConstants.DIR_PIGUDFS;
         String BEANS = TalendJavaProjectConstants.DIR_BEANS;
         String SEPARATOR = "|"; //$NON-NLS-1$
         String SLASH = "/"; //$NON-NLS-1$
-        modules.put(CODES + SEPARATOR + ROUTINES, "../../" + CODES + SLASH + ROUTINES); //$NON-NLS-1$
+        modules.put(KEY + SEPARATOR + "ci", "../" + TalendJavaProjectConstants.FILE_POM_CI_BUILDER); //$NON-NLS-1$ //$NON-NLS-2$
+        modules.put(KEY + SEPARATOR + ROUTINES, "../../" + CODES + SLASH + ROUTINES); //$NON-NLS-1$
         if (ProcessUtils.isRequiredPigUDFs(null)) {
-            modules.put(CODES + SEPARATOR + PIGUDF, "../../" + CODES + SLASH + PIGUDF); //$NON-NLS-1$
+            modules.put(KEY + SEPARATOR + PIGUDF, "../../" + CODES + SLASH + PIGUDF); //$NON-NLS-1$
         }
         if (ProcessUtils.isRequiredBeans(null)) {
-            modules.put(CODES + SEPARATOR + BEANS, "../../" + CODES + SLASH + BEANS); //$NON-NLS-1$
+            modules.put(KEY + SEPARATOR + BEANS, "../../" + CODES + SLASH + BEANS); //$NON-NLS-1$
         }
     }
 

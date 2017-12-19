@@ -89,7 +89,11 @@ public class TalendJavaProjectManager {
 
                     // deployments
                     if (PluginChecker.isTIS()) {
-                        createFolderIfNotExist(poms.getFolder(DIR_DEPLOYMENTS), monitor);
+                        IFolder deployments = createFolderIfNotExist(poms.getFolder(DIR_DEPLOYMENTS), monitor);
+                        IFile ciPomFile = deployments.getFile(FILE_POM_CI_BUILDER);
+                        if (!ciPomFile.exists()) {
+                            helper.createCIPom(ciPomFile, monitor);
+                        }
                     }
 
                     // codes

@@ -43,8 +43,9 @@ import org.talend.designer.maven.utils.PomIdsHelper;
 import org.talend.designer.maven.utils.PomUtil;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.model.DeploymentConfsModel;
-import org.talend.repository.model.RepositoryNode;
+import org.talend.utils.json.JSONException;
 import org.talend.utils.json.JSONObject;
+import org.talend.utils.json.JSONTokener;
 
 /**
  * DOC zwxue class global comment. Detailled comment
@@ -112,7 +113,7 @@ public class DeploymentConfsUtils {
     private void retrieveModulesFromJsonFile(Map<String, String> modules, File file) throws Exception {
         modules.clear();
         String jsonStr = readJsonFile(file);
-        JSONObject object = new JSONObject(jsonStr);
+        JSONObject object = new OrderedJSONObject(jsonStr);
         Iterator<String> iterator = object.keys();
         while (iterator.hasNext()) {
             String key = iterator.next();
@@ -130,7 +131,7 @@ public class DeploymentConfsUtils {
         IFile jsonFile = confFolder.getFile(JSON_FILE_NAME);
         Map<String, String> modules = confModel.getModules();
         if (!modules.isEmpty()) {
-            JSONObject object = new JSONObject(confModel.getModules());
+            JSONObject object = new OrderedJSONObject(modules);
             InputStream source = new ByteArrayInputStream(object.toString().getBytes());
             if (!jsonFile.exists()) {
                 jsonFile.create(source, true, null);
@@ -184,17 +185,88 @@ public class DeploymentConfsUtils {
         IFile pomFile = confFolder.getFile(TalendMavenConstants.POM_FILE_NAME);
         Model model = new Model();
         model.setModelVersion("4.0.0"); //$NON-NLS-1$
-        model.setGroupId("org.talend." + project.getTechnicalLabel().toLowerCase() + ".deployments"); //$NON-NLS-1$ //$NON-NLS-2$
+        model.setGroupId(
+                TalendMavenConstants.DEFAULT_GROUP_ID + "." + project.getTechnicalLabel().toLowerCase() + ".deployments"); //$NON-NLS-1$ //$NON-NLS-2$
         model.setArtifactId(confFolder.getName());
         model.setVersion(PomIdsHelper.getProjectVersion());
         model.setPackaging(TalendMavenConstants.PACKAGING_POM);
+
         List<String> list = model.getModules();
         if (list == null) {
             list = new ArrayList<>();
             model.setModules(list);
         }
         list.addAll(modules);
-        // PomUtil.checkParent(templateModel, pomFile, null);
         PomUtil.savePom(null, model, pomFile);
     }
+
+    class OrderedJSONObject extends JSONObject {
+
+        OrderedJSONObject(Map map) {
+            this.map = (map == null) ? new LinkedHashMap() : map;
+        }
+
+        OrderedJSONObject(String source) throws JSONException {
+            map = new LinkedHashMap();
+            JSONTokener x = new JSONTokener(source);
+            char c;
+            String key;
+
+            if (x.nextClean() != '{') {
+                throw x.syntaxError("A JSONObject text must begin with '{'");
+            }
+            for (;;) {
+                c = x.nextClean();
+                switch (c) {
+                case 0:
+                    throw x.syntaxError("A JSONObject text must end with '}'");
+                case '}':
+                    return;
+                default:
+                    x.back();
+                    key = x.nextValue().toString();
+                }
+
+                /*
+                 * The key is followed by ':'. We will also tolerate '=' or '=>'.
+                 */
+
+                c = x.nextClean();
+                if (c == '=') {
+                    if (x.next() != '>') {
+                        x.back();
+                    }
+                } else if (c != ':') {
+                    throw x.syntaxError("Expected a ':' after a key");
+                }
+                putOnce(key, x.nextValue());
+
+                /*
+                 * Pairs are separated by ','. We will also tolerate ';'.
+                 */
+
+                switch (x.nextClean()) {
+                case ';':
+                case ',':
+                    if (x.nextClean() == '}') {
+                        return;
+                    }
+                    x.back();
+                    break;
+                case '}':
+                    return;
+                default:
+                    throw x.syntaxError("Expected a ',' or '}'");
+                }
+            }
+        }
+
+        @Override
+        public Iterator sortedKeys() {
+            // won't do sort
+            return map.keySet().iterator();
+        }
+
+    }
+
 }
