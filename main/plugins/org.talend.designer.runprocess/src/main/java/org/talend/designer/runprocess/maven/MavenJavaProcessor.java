@@ -44,6 +44,7 @@ import org.talend.core.runtime.repository.build.BuildExportManager;
 import org.talend.core.runtime.repository.build.IBuildParametes;
 import org.talend.core.runtime.repository.build.IBuildPomCreatorParameters;
 import org.talend.core.runtime.repository.build.IMavenPomCreator;
+import org.talend.core.utils.BitwiseOptionUtils;
 import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.creator.CreateMavenJobPom;
@@ -68,7 +69,12 @@ public class MavenJavaProcessor extends JavaProcessor {
     @Override
     public void generateCode(boolean statistics, boolean trace, boolean javaProperties, int option) throws ProcessorException {
         super.generateCode(statistics, trace, javaProperties, option);
-        if (!isStandardJob()) {
+        if (isStandardJob()) {
+            int options = ProcessUtils.getOptionValue(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION, 0);
+            if (isExportConfig() && !BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
+                generatePom(option);
+            }
+        } else {
             // for Shadow Process/Data Preview
             try {
                 PomUtil.updatePomDependenciesFromProcessor(this);
