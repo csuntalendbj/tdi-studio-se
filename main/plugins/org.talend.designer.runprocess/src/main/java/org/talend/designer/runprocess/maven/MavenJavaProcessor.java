@@ -49,6 +49,7 @@ import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.creator.CreateMavenJobPom;
 import org.talend.designer.maven.utils.PomUtil;
+import org.talend.designer.maven.utils.TalendCodeProjectUtil;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.java.JavaProcessor;
@@ -294,6 +295,7 @@ public class MavenJavaProcessor extends JavaProcessor {
     public void build(IProgressMonitor monitor) throws Exception {
         final ITalendProcessJavaProject talendJavaProject = getTalendJavaProject();
         // compile with JDT first in order to make the maven packaging work with a JRE.
+        TalendCodeProjectUtil.updateMavenProject(monitor, talendJavaProject.getProject());
         String goal = getGoals();
         boolean isGoalInstall = TalendMavenConstants.GOAL_INSTALL.equals(goal);
         IFile jobJarFile = null;
