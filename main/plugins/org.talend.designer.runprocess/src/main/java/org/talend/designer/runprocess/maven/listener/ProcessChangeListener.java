@@ -24,6 +24,7 @@ import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.repository.IRepositoryViewObject;
+import org.talend.core.runtime.process.LastGenerationInfo;
 import org.talend.designer.core.IDesignerCoreService;
 import org.talend.designer.runprocess.IProcessor;
 import org.talend.designer.runprocess.ProcessorUtilities;
@@ -112,6 +113,7 @@ public class ProcessChangeListener implements PropertyChangeListener {
                 IContext context = process.getContextManager().getDefaultContext();
                 IProcessor processor = ProcessorUtilities.getProcessor(process, proceeItem.getProperty(), context);
                 if (processor instanceof MavenJavaProcessor) {
+                    LastGenerationInfo.getInstance().clearModulesNeededWithSubjobPerJob();
                     ((MavenJavaProcessor) processor).generatePom(0);
                 }
             }
