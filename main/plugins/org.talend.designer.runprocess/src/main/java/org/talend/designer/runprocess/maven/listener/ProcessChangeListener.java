@@ -16,20 +16,26 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.talend.core.CorePlugin;
-import org.talend.core.model.process.IContext;
-import org.talend.core.model.process.IProcess;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.ltk.core.refactoring.resource.MoveResourceChange;
+import org.eclipse.ltk.core.refactoring.resource.RenameResourceChange;
+import org.talend.commons.exception.ExceptionHandler;
+import org.talend.core.GlobalServiceRegister;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.repository.IRepositoryViewObject;
-import org.talend.core.runtime.process.LastGenerationInfo;
-import org.talend.designer.core.IDesignerCoreService;
-import org.talend.designer.runprocess.IProcessor;
-import org.talend.designer.runprocess.ProcessorUtilities;
+import org.talend.core.repository.model.ProxyRepositoryFactory;
+import org.talend.core.ui.ITestContainerProviderService;
+import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.runprocess.java.TalendJavaProjectManager;
-import org.talend.designer.runprocess.maven.MavenJavaProcessor;
+import org.talend.repository.ProjectManager;
+import org.talend.repository.RepositoryWorkUnit;
 import org.talend.repository.documentation.ERepositoryActionName;
 
 /**
@@ -37,87 +43,193 @@ import org.talend.repository.documentation.ERepositoryActionName;
  */
 public class ProcessChangeListener implements PropertyChangeListener {
 
-    private List<ERepositoryObjectType> allProcessType;
+    private AggregatorPomsHelper helper;
 
-    public ProcessChangeListener() {
-        allProcessType = ERepositoryObjectType.getAllTypesOfProcess();
-    }
+    private List<ERepositoryObjectType> allProcessTypes = ERepositoryObjectType.getAllTypesOfProcess();
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
+        if (helper == null) {
+            helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
+        }
         String propertyName = event.getPropertyName();
-        if (propertyName.equals(ERepositoryActionName.PROPERTIES_CHANGE.getName())
-                || propertyName.equals(ERepositoryActionName.MOVE.getName())) {
-            deleteAllVersionJobProjects(event.getOldValue());
-        } else if (propertyName.equals(ERepositoryActionName.DELETE_FOREVER.getName())) {
-            deleteAllVersionJobProjects(event.getNewValue());
-        } else if (propertyName.equals(ERepositoryActionName.FOLDER_RENAME.getName())) {
-            deleteJobProjectsByRenamedFolder(event);
-        } else if (propertyName.equals(ERepositoryActionName.FOLDER_MOVE.getName())) {
-            deleteJobProjectsByMovedFolder(event);
-        } else if (propertyName.equals(ERepositoryActionName.FOLDER_DELETE.getName())) {
-            deleteJobProjectsByDeletedFolder(event);
-        } else if (propertyName.equals(ERepositoryActionName.SAVE.getName())) {
-            generatePom(event.getNewValue());
-        }
-    }
-
-    private void deleteJobProjectsByRenamedFolder(PropertyChangeEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
-        if (oldValue instanceof IPath && newValue instanceof Object[]) {
-            IPath folderPath = (IPath) oldValue;
-            Object[] objects = (Object[]) newValue;
-            ERepositoryObjectType processType = (ERepositoryObjectType) objects[1];
-            TalendJavaProjectManager.deleteTalendJobProjectsUnderFolder(folderPath, processType, false);
-        }
-    }
+        RepositoryWorkUnit<Object> workUnit = new RepositoryWorkUnit<Object>("update poms by " + propertyName) { //$NON-NLS-1$
 
-    private void deleteJobProjectsByMovedFolder(PropertyChangeEvent event) {
-        Object oldValue = event.getOldValue();
-        Object newValue = event.getNewValue();
-        if (oldValue instanceof IPath[] && newValue instanceof ERepositoryObjectType) {
-            IPath[] paths = (IPath[]) oldValue;
-            IPath folderPath = paths[0];
-            ERepositoryObjectType processType = (ERepositoryObjectType) newValue;
-            TalendJavaProjectManager.deleteTalendJobProjectsUnderFolder(folderPath, processType, false);
-        }
-    }
-
-    private void deleteJobProjectsByDeletedFolder(PropertyChangeEvent event) {
-        Object oldValue = event.getOldValue();
-        Object newValue = event.getNewValue();
-        if (oldValue instanceof IPath && newValue instanceof ERepositoryObjectType) {
-            IPath folderPath = (IPath) oldValue;
-            ERepositoryObjectType processType = (ERepositoryObjectType) newValue;
-            TalendJavaProjectManager.deleteTalendJobProjectsUnderFolder(folderPath, processType, true);
-        }
-    }
-
-    private void deleteAllVersionJobProjects(Object object) {
-        if (object instanceof IRepositoryViewObject) {
-            Property property = ((IRepositoryViewObject) object).getProperty();
-            ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
-            if (allProcessType.contains(type)) {
-                TalendJavaProjectManager.deleteAllVersionTalendJobProject(property.getId());
+            @Override
+            protected void run() {
+                if (propertyName.equals(ERepositoryActionName.PROPERTIES_CHANGE.getName())) {
+                    casePropertiesChange(oldValue, newValue);
+                } else if (propertyName.equals(ERepositoryActionName.MOVE.getName())) {
+                    caseMove(oldValue, newValue);
+                } else if (propertyName.equals(ERepositoryActionName.DELETE_FOREVER.getName())) {
+                    caseDeleteForever(newValue);
+                } else if (propertyName.equals(ERepositoryActionName.FOLDER_RENAME.getName())) {
+                    caseFolderRename(oldValue, newValue);
+                } else if (propertyName.equals(ERepositoryActionName.FOLDER_MOVE.getName())) {
+                    caseFolderMove(oldValue, newValue);
+                } else if (propertyName.equals(ERepositoryActionName.FOLDER_DELETE.getName())) {
+                    caseFolderDelete(oldValue, newValue);
+                } else if (propertyName.equals(ERepositoryActionName.SAVE.getName())
+                        || propertyName.equals(ERepositoryActionName.IMPORT.getName())) {
+                    caseSave(newValue);
+                }
             }
-        }
+        };
+        workUnit.setAvoidUnloadResources(true);
+        ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
     }
 
-    private void generatePom(Object object) {
-        if (object instanceof ProcessItem) {
-            ProcessItem proceeItem = (ProcessItem) object;
-            if (allProcessType.contains(ERepositoryObjectType.getItemType(proceeItem))) {
-                IDesignerCoreService service = CorePlugin.getDefault().getDesignerCoreService();
-                IProcess process = service.getProcessFromProcessItem(proceeItem);
-                IContext context = process.getContextManager().getDefaultContext();
-                IProcessor processor = ProcessorUtilities.getProcessor(process, proceeItem.getProperty(), context);
-                if (processor instanceof MavenJavaProcessor) {
-                    LastGenerationInfo.getInstance().clearModulesNeededWithSubjobPerJob();
-                    ((MavenJavaProcessor) processor).generatePom(0);
+    private void casePropertiesChange(Object oldValue, Object newValue) {
+        // oldValue: [oldName, oldVersion], newValue: property
+        if (oldValue instanceof String[] && newValue instanceof Property) {
+            Property property = (Property) newValue;
+            if (property.getItem() instanceof ProcessItem) {
+                ITestContainerProviderService service = getTestContainerProviderService();
+                boolean isTestCase = false;
+                if (service != null) {
+                    isTestCase = service.isTestContainerItem(property.getItem());
+                }
+                if (isTestCase) {
+                    // FIXME
+                } else {
+                    String[] oldFields = (String[]) oldValue;
+                    String oldName = oldFields[0];
+                    String oldVersion = oldFields[1];
+                    if (!oldName.equals(property.getLabel())) {
+                        // job name change, will change all old version job name
+                        // delete all version old job projects physically(need to recreate pom), and create new for all.
+                        TalendJavaProjectManager.deleteAllVersionTalendJobProject(property.getId(), oldName, true);
+                        TalendJavaProjectManager.createAllVersionTalendJobProject(property.getId());
+                    } else if (!oldVersion.equals(property.getVersion())) {
+                        // version change, will create new item
+                        // create new job project.
+                        TalendJavaProjectManager.getTalendJobJavaProject(property);
+                        TalendJavaProjectManager.generatePom((ProcessItem) property.getItem());
+                    }
                 }
             }
         }
+    }
+
+    private void caseMove(Object oldValue, Object newValue) {
+        // oldValue: IRepositoryViewObject, newValue: [sourcePath, targetPath]
+        if (oldValue instanceof IRepositoryViewObject && newValue instanceof IPath[]) {
+            // delete all version job project, create all version new projects
+            IRepositoryViewObject obj = (IRepositoryViewObject) oldValue;
+            if (obj.getProperty().getItem() instanceof ProcessItem) {
+                // TalendJavaProjectManager.deleteAllVersionTalendJobProject(obj.getId(), null, false);
+                IPath sourcePath = ((IPath[]) newValue)[0];
+                IPath targetPath = ((IPath[]) newValue)[1];
+                IFolder processTypeFolder = helper.getProcessFolder(obj.getRepositoryObjectType());
+                IFolder targetFolder = processTypeFolder.getFolder(targetPath);
+                try {
+                    if (!targetFolder.exists()) {
+                        targetFolder.create(true, true, null);
+                    }
+                    List<IRepositoryViewObject> allVersions = ProxyRepositoryFactory.getInstance().getAllVersion(obj.getId());
+                    for (IRepositoryViewObject objs : allVersions) {
+                        Property property = objs.getProperty();
+                        String jobProjectFolderName = AggregatorPomsHelper.getJobProjectFolderName(property);
+                        IFolder sourceFolder = processTypeFolder.getFolder(sourcePath).getFolder(jobProjectFolderName);
+                        if (sourceFolder.exists()) {
+                            MoveResourceChange change = new MoveResourceChange(sourceFolder, targetFolder);
+                            change.perform(new NullProgressMonitor());
+                        }
+                    }
+                } catch (Exception e) {
+                    ExceptionHandler.process(e);
+                }
+            }
+        }
+    }
+
+    private void caseDeleteForever(Object newValue) {
+        // newValue: obj
+        if (newValue instanceof IRepositoryViewObject) {
+            Property property = ((IRepositoryViewObject) newValue).getProperty();
+            if (property != null) {
+                ITestContainerProviderService service = getTestContainerProviderService();
+                boolean isTestCase = false;
+                if (service != null && property.getItem() != null) {
+                    isTestCase = service.isTestContainerItem(property.getItem());
+                }
+                if (isTestCase) {
+                    // FIXME testcase should regenerate pom to remove extra dependencies.
+                } else {
+                    // delete all version old job projects physically, won't check to remove parent folder
+                    TalendJavaProjectManager.deleteAllVersionTalendJobProject(property.getId(), null, true);
+                }
+            }
+        }
+    }
+
+    private void caseFolderRename(Object oldValue, Object newValue) {
+        // oldValue: IPath, newValue: [label, type]
+        if (oldValue instanceof IPath && newValue instanceof Object[]) {
+            // delete all version old job projects under it logically, rename folder
+            IPath folderPath = (IPath) oldValue;
+            Object[] objects = (Object[]) newValue;
+            String newName = (String) objects[0];
+            ERepositoryObjectType processType = (ERepositoryObjectType) objects[1];
+            if (allProcessTypes.contains(processType)) {
+                // TalendJavaProjectManager.deleteTalendJobProjectsUnderFolder(processType, folderPath, false);
+                IFolder sourceFolder = helper.getProcessFolder(processType).getFolder(folderPath);
+                NullProgressMonitor monitor = new NullProgressMonitor();
+                try {
+                    sourceFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+                    RenameResourceChange change = new RenameResourceChange(sourceFolder.getFullPath(), newName);
+                    change.perform(monitor);
+                } catch (CoreException e) {
+                    ExceptionHandler.process(e);
+                }
+            }
+        }
+    }
+
+    private void caseFolderMove(Object oldValue, Object newValue) {
+        // oldValue: [sourcePath, targetPath], newValue: type
+        if (oldValue instanceof IPath[] && newValue instanceof ERepositoryObjectType) {
+            // delete all version old job projects under it logically, move folder
+            IPath sourcePath = ((IPath[]) oldValue)[0];
+            IPath targetPath = ((IPath[]) oldValue)[1];
+            ERepositoryObjectType processType = (ERepositoryObjectType) newValue;
+            // TalendJavaProjectManager.deleteTalendJobProjectsUnderFolder(processType, sourcePath, false);
+            IFolder processTypeFolder = helper.getProcessFolder(processType);
+            IFolder sourceFolder = processTypeFolder.getFolder(sourcePath);
+            IFolder targetFolder = processTypeFolder.getFolder(targetPath);
+            MoveResourceChange change = new MoveResourceChange(sourceFolder, targetFolder);
+            try {
+                change.perform(new NullProgressMonitor());
+            } catch (OperationCanceledException | CoreException e) {
+                ExceptionHandler.process(e);
+            }
+        }
+    }
+
+    private void caseFolderDelete(Object oldValue, Object newValue) {
+        // oldValue: IPath, newValue: type
+        if (oldValue instanceof IPath && newValue instanceof ERepositoryObjectType) {
+            // delete all version job projects under it physically, remove this folder.
+            IPath folderPath = (IPath) oldValue;
+            ERepositoryObjectType processType = (ERepositoryObjectType) newValue;
+            TalendJavaProjectManager.deleteTalendJobProjectsUnderFolder(processType, folderPath, true);
+        }
+    }
+
+    private void caseSave(Object newValue) {
+        if (newValue instanceof ProcessItem) {
+            TalendJavaProjectManager.generatePom((ProcessItem) newValue);
+        }
+    }
+
+    private ITestContainerProviderService getTestContainerProviderService() {
+        if (GlobalServiceRegister.getDefault().isServiceRegistered(ITestContainerProviderService.class)) {
+            return (ITestContainerProviderService) GlobalServiceRegister.getDefault()
+                    .getService(ITestContainerProviderService.class);
+        }
+        return null;
     }
 
 }

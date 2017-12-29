@@ -65,6 +65,10 @@ public class MavenJavaProcessor extends JavaProcessor {
 
     public MavenJavaProcessor(IProcess process, Property property, boolean filenameFromLabel) {
         super(process, property, filenameFromLabel);
+        if (isStandardJob() && getContext() != null && getTalendJavaProject().isUseTempPom()) {
+            // for remote project when jobs have no chance to generate/update pom
+            generatePom(0);
+        }
     }
 
     @Override
@@ -119,8 +123,12 @@ public class MavenJavaProcessor extends JavaProcessor {
             ProcessorUtilities.setExportConfig(JavaUtils.JAVA_APP_NAME, routinesJarPath, getBaseLibPath());
 
             String contextName = JavaResourcesHelper.getJobContextName(this.context);
+            String oldTarget = this.getTargetPlatform();
+            boolean oldBuild = this.isOldBuildJob(); 
             setPlatformValues(Platform.OS_WIN32, contextName);
             setPlatformValues(Platform.OS_LINUX, contextName);
+            this.setTargetPlatform(oldTarget);
+            this.setOldBuildJob(oldBuild);
         } finally {
             ProcessorUtilities.setExportConfig(oldInterpreter, oldCodeLocation, oldLibraryPath, oldExportConfig,
                     oldExportTimestamp);
@@ -135,7 +143,7 @@ public class MavenJavaProcessor extends JavaProcessor {
         try {
             // maybe should just reuse current processor's getCommandLine method.
             // use always use new way.
-            String[] cmds = ProcessorUtilities.getCommandLine(false, tp, true, process, null, contextName, false, -1, -1);
+            String[] cmds = ProcessorUtilities.getCommandLine(false, tp, true, this, null, contextName, false, -1, -1);
             setValuesFromCommandline(tp, cmds);
         } catch (ProcessorException e) {
             ExceptionHandler.process(e);
@@ -226,9 +234,7 @@ public class MavenJavaProcessor extends JavaProcessor {
 
     public void generatePom(int option) {
         initJobClasspath();
-
         try {
-
             IMavenPomCreator createTemplatePom = createMavenPomCreator();
             if (createTemplatePom != null) {
                 createTemplatePom.setSyncCodesPoms(option == 0);
@@ -236,11 +242,11 @@ public class MavenJavaProcessor extends JavaProcessor {
                 ProcessUtils.setJarWithContext(ProcessUtils.needsToHaveContextInsideJar((ProcessItem) property.getItem()));
                 createTemplatePom.create(null);
                 ProcessUtils.setJarWithContext(previousValue);
+                getTalendJavaProject().setUseTempPom(false);
             }
         } catch (Exception e) {
             ExceptionHandler.process(e);
         }
-
     }
 
     protected IMavenPomCreator createMavenPomCreator() {

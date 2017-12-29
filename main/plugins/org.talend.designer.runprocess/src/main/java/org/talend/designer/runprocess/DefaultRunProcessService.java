@@ -63,7 +63,6 @@ import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.projectsetting.ProjectPreferenceManager;
 import org.talend.core.service.IESBMicroService;
 import org.talend.core.ui.ITestContainerProviderService;
-import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.ProjectPomManager;
 import org.talend.designer.maven.utils.PomUtil;
@@ -678,16 +677,6 @@ public class DefaultRunProcessService implements IRunProcessService {
     @Override
     public String getAbsMavenArtifactPath(MavenArtifact artifact) {
         return PomUtil.getAbsArtifactPath(artifact);
-    }
-
-    @Override
-    public ITalendProcessJavaProject getExistingTalendJobJavaProject(String id, String version) {
-        return TalendJavaProjectManager.getExistingTalendJobProject(id, version);
-    }
-
-    @Override
-    public void deleteAllVersionTalendJobProject(String id) {
-        TalendJavaProjectManager.deleteAllVersionTalendJobProject(id);
     }
 
 }

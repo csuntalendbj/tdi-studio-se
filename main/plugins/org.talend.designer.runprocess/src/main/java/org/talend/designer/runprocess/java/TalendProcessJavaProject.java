@@ -52,6 +52,8 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
 
     private final MavenPomSynchronizer synchronizer;
 
+    private boolean useTempPom;
+
     public TalendProcessJavaProject(IJavaProject javaProject) {
         super();
         this.javaProject = javaProject;
@@ -377,6 +379,16 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
     @Override
     public void regenerateMainProjectPom(IProgressMonitor monitor) throws Exception {
         // this.synchronizer.regenerateMainProjectPom(monitor, null);
+    }
+
+    @Override
+    public boolean isUseTempPom() {
+        return useTempPom;
+    }
+
+    @Override
+    public void setUseTempPom(boolean useTempPom) {
+        this.useTempPom = useTempPom;
     }
 
 }
