@@ -77,6 +77,7 @@ public class MavenJavaProcessor extends JavaProcessor {
         if (isStandardJob()) {
             int options = ProcessUtils.getOptionValue(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION, 0);
             if (isExportConfig() && !BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
+                PomUtil.backupPomFile(getTalendJavaProject());
                 generatePom(option);
             }
         } else {

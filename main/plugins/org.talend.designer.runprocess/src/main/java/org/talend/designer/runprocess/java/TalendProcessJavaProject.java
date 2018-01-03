@@ -38,6 +38,7 @@ import org.talend.designer.maven.launch.MavenPomCommandLauncher;
 import org.talend.designer.maven.model.MavenSystemFolders;
 import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
+import org.talend.designer.maven.utils.PomUtil;
 import org.talend.utils.io.FilesUtils;
 
 /**
@@ -316,7 +317,11 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
             } else {
                 mavenLauncher = new MavenPomCommandLauncher(childModulePomFile, goals);
                 mavenLauncher.setArgumentsMap(argumentsMap);
-                mavenLauncher.execute(monitor);
+                try {
+                    mavenLauncher.execute(monitor);
+                } finally {
+                    PomUtil.restorePomFile(this);
+                }
             }
         } else {
             throw new RuntimeException("The pom.xml is not existed. Can't build the job: " + module); //$NON-NLS-1$
