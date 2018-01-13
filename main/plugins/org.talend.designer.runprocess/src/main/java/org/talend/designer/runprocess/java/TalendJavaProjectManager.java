@@ -324,6 +324,13 @@ public class TalendJavaProjectManager {
             protected void run() {
                 try {
                     List<IRepositoryViewObject> allVersionObjects = ProxyRepositoryFactory.getInstance().getAllVersion(id);
+                    for (IRepositoryViewObject object : allVersionObjects) {
+                        String realVersion = object.getVersion();
+                        Property property = object.getProperty();
+                        IPath jobPath = DeploymentConfsUtils.getJobEclipseProjectPath(property, realVersion);
+                        IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(jobPath.append(TalendMavenConstants.POM_FILE_NAME));
+                        AggregatorPomsHelper.removeFromParentModules(file);
+                    }
                     Set<String> removedVersions = new HashSet<>();
                     Iterator<String> iterator = talendJobJavaProjects.keySet().iterator();
                     // delete exist project
@@ -348,9 +355,9 @@ public class TalendJavaProjectManager {
                                 if (oldName != null) {
                                     property.setLabel(oldName);
                                 }
+                                IPath jobPath = DeploymentConfsUtils.getJobProjectPath(property, realVersion);
                                 if (!removedVersions.contains(realVersion)) {
-                                    IPath path = DeploymentConfsUtils.getJobProjectPath(property, realVersion);
-                                    File projectFolder = path.toFile();
+                                    File projectFolder = jobPath.toFile();
                                     if (projectFolder.exists()) {
                                         FilesUtils.deleteFolder(projectFolder, true);
                                     }

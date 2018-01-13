@@ -167,6 +167,19 @@ public class DeploymentConfsUtils {
         String pathStr = "../../" + path.toPortableString(); //$NON-NLS-1$
         return pathStr;
     }
+    
+    public static IPath getJobEclipseProjectPath(Property property, String realVersion) {
+        // without create/open project
+        String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
+        Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
+        String version = realVersion == null ? property.getVersion() : realVersion;
+        IPath path = ItemResourceUtil.getItemRelativePath(property);
+        IFolder processTypeFolder = new AggregatorPomsHelper(project)
+                .getProcessFolder(ERepositoryObjectType.getItemType(property.getItem()));
+        path = processTypeFolder.getFullPath().append(path);
+        path = path.append(AggregatorPomsHelper.getJobProjectFolderName(property.getLabel(), version));
+        return path;
+    }
 
     public static IPath getJobProjectPath(Property property, String realVersion) {
         // without create/open project
