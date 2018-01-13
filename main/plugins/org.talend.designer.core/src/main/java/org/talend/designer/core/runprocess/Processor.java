@@ -34,7 +34,6 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.exception.SystemException;
 import org.talend.commons.ui.runtime.exception.MessageBoxExceptionHandler;
-import org.talend.core.CorePlugin;
 import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.ITargetExecutionConfig;
@@ -106,6 +105,8 @@ public abstract class Processor implements IProcessor, IEclipseProcessor, Talend
     private boolean oldBuildJob = false;
 
     private Map<String, Object> argumentsMap;
+
+    private boolean skipClasspathJar;
 
     // least once
 
@@ -345,7 +346,8 @@ public abstract class Processor implements IProcessor, IEclipseProcessor, Talend
      * @throws ProcessorException
      */
     protected Process exec(Level level, int statOption, int traceOption, String... codeOptions) throws ProcessorException {
-        return execFrom(PomUtil.getExecLocationForClassPath(), level, statOption, traceOption, codeOptions);
+        String execPath = getTalendJavaProject().getTargetFolder().getLocation().toPortableString();
+        return execFrom(execPath, level, statOption, traceOption, codeOptions);
     }
 
     protected Process execFrom(String path, Level level, int statOption, int traceOption, String... codeOptions)
@@ -778,4 +780,15 @@ public abstract class Processor implements IProcessor, IEclipseProcessor, Talend
     public boolean shouldRunAsExport() {
         return false; // by default, for standard job, run in .Java project
     }
+
+    @Override
+    public void setSkipClasspathJar(boolean skipClasspathJar) {
+        this.skipClasspathJar = skipClasspathJar;
+    }
+
+    @Override
+    public boolean isSkipClasspathJar() {
+        return skipClasspathJar;
+    }
+
 }

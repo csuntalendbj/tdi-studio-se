@@ -71,6 +71,7 @@ import org.talend.designer.core.ui.editor.nodes.Node;
 import org.talend.designer.core.ui.editor.subjobcontainer.sparkstreaming.SparkStreamingSubjobContainer;
 import org.talend.designer.core.utils.ConnectionUtil;
 import org.talend.designer.core.utils.ParallelExecutionUtils;
+import org.talend.designer.maven.tools.BuildCacheManager;
 import org.talend.designer.runprocess.ProcessMessage.MsgType;
 import org.talend.designer.runprocess.i18n.Messages;
 import org.talend.designer.runprocess.jmx.JMXPerformanceChangeListener;
@@ -573,11 +574,14 @@ public class RunProcessContext {
                             }
                             final String generateCodeId = "Generate job source codes and compile before run"; //$NON-NLS-1$
                             TimeMeasure.begin(generateCodeId);
+                            
+                            BuildCacheManager.getInstance().clearCurrentCache();
                             try {
                                 ProcessorUtilities.generateCode(processor, process, context,
                                     getStatisticsPort() != IProcessor.NO_STATISTICS, getTracesPort() != IProcessor.NO_TRACES
                                             && hasConnectionTrace(), true, progressMonitor);
                             } catch (Throwable e) {
+                                BuildCacheManager.getInstance().performBuildFailure();
                                 // catch any Exception or Error to kill the process,
                                 // see bug 0003567
                                 running = true;
@@ -613,8 +617,9 @@ public class RunProcessContext {
                                                 // correct
                                                 // before launching
                                                 if (!JobErrorsChecker.hasErrors(shell)) {
-                                                    ps = processor.run(getStatisticsPort(), getTracesPort(), watchParam,
-                                                            log4jRuntimeLevel, progressMonitor, processMessageManager);
+                                                    ps = processor.run(new String[] { watchParam, log4jLevel }, getStatisticsPort(),
+                                                            getTracesPort(), progressMonitor, processMessageManager);
+                                                    BuildCacheManager.getInstance().performBuildSuccess();
                                                 }
 
                                                 if (ps != null && !progressMonitor.isCanceled()) {

@@ -38,6 +38,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -133,6 +134,7 @@ import org.talend.designer.core.model.utils.emf.talendfile.ProcessType;
 import org.talend.designer.core.ui.editor.CodeEditorFactory;
 import org.talend.designer.core.ui.editor.nodes.Node;
 import org.talend.designer.core.ui.editor.process.Process;
+import org.talend.designer.maven.utils.ClasspathsJarGenerator;
 import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.ItemCacheManager;
 import org.talend.designer.runprocess.ProcessorConstants;
@@ -1215,6 +1217,19 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
         if (libsStr.lastIndexOf(classPathSeparator) != libsStr.length() - 1) {
             libsStr += classPathSeparator;
         }
+
+        // may have blank in classpath since use absolute path.
+        libsStr = StringUtils.replace(libsStr, " ", "%20"); //$NON-NLS-1$ //$NON-NLS-2$
+
+        // create classpath.jar
+        if (!isExportConfig() && !isSkipClasspathJar()) {
+            try {
+                libsStr = ClasspathsJarGenerator.createJar(getProperty(), libsStr, classPathSeparator);
+            } catch (Exception e) {
+                throw new ProcessorException(e);
+            }
+        }
+
         return libsStr;
     }
 
@@ -1349,7 +1364,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
         } else {
             for (ModuleNeeded neededModule : neededModules) {
                 MavenArtifact artifact = MavenUrlHelper.parseMvnUrl(neededModule.getMavenUri());
-                libPath.append(PomUtil.getRelativeClassPathOfArtifact(artifact)).append(classPathSeparator);
+                libPath.append(PomUtil.getAbsArtifactPathAsCP(artifact)).append(classPathSeparator);
             }
         }
 

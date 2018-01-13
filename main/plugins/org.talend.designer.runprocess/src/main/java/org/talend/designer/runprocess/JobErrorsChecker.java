@@ -264,7 +264,9 @@ public class JobErrorsChecker {
         Integer line = null;
         String errorMessage = null;
         try {
-            for (JobInfo jobInfo : LastGenerationInfo.getInstance().getLastGeneratedjobs()) {
+            HashSet<JobInfo> jobInfos = new HashSet<>();
+            jobInfos.add(LastGenerationInfo.getInstance().getLastMainJob());
+            for (JobInfo jobInfo : jobInfos) {
                 if (jobInfo.isTestContainer()) {
                     continue;
                 }

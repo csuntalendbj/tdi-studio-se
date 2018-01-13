@@ -12,7 +12,20 @@
 // ============================================================================
 package org.talend.designer.runprocess.java;
 
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.*;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.CLASSPATH_FILE_NAME;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_BEANS;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_CODES;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_DEPLOYMENTS;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_JOBS;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PIGUDFS;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_MR;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_ROUTES;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_SERVICES;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_STORM;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_ROUTINES;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.FILE_POM_CI_BUILDER;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.PROJECT_FILE_NAME;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -64,6 +77,7 @@ import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.creator.CreateMavenCodeProject;
+import org.talend.designer.maven.utils.MavenProjectUtils;
 import org.talend.designer.maven.utils.TalendCodeProjectUtil;
 import org.talend.designer.runprocess.IProcessor;
 import org.talend.designer.runprocess.ProcessorUtilities;
@@ -169,7 +183,8 @@ public class TalendJavaProjectManager {
                 IFolder codeProjectFolder = helper.getProjectPomsFolder().getFolder(type.getFolder());
                 IProject codeProject = root.getProject((project.getTechnicalLabel() + "_" + type.name()).toUpperCase()); //$NON-NLS-1$
                 if (!codeProject.exists() || TalendCodeProjectUtil.needRecreate(monitor, codeProject)) {
-                    createMavenJavaProject(monitor, codeProject, codeProjectFolder);
+                    // always enable maven nature for code projects.
+                    createMavenJavaProject(monitor, codeProject, codeProjectFolder, true);
                 }
                 IJavaProject javaProject = JavaCore.create(codeProject);
                 if (!javaProject.isOpen()) {
@@ -187,6 +202,10 @@ public class TalendJavaProjectManager {
     }
 
     public static ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
+        return getTalendJobJavaProject(property, false);
+    }
+
+    public static ITalendProcessJavaProject getTalendJobJavaProject(Property property, boolean enbleMavenNature) {
         if (property == null) {
             return getTempJavaProject();
         }
@@ -205,14 +224,14 @@ public class TalendJavaProjectManager {
                     property = testContainerService.getParentJobItem(property.getItem()).getProperty();
                 }
             }
-            String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
-            Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
-            AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
             String jobProjectId = AggregatorPomsHelper.getJobProjectId(property);
             talendJobJavaProject = talendJobJavaProjects.get(jobProjectId);
+            IProgressMonitor monitor = new NullProgressMonitor();
             if (talendJobJavaProject == null || talendJobJavaProject.getProject() == null
                     || !talendJobJavaProject.getProject().exists()) {
-                IProgressMonitor monitor = new NullProgressMonitor();
+                String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
+                Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
+                AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
                 IProject jobProject = root.getProject(AggregatorPomsHelper.getJobProjectName(project, property));
                 IPath itemRelativePath = ItemResourceUtil.getItemRelativePath(property);
@@ -220,12 +239,9 @@ public class TalendJavaProjectManager {
                 ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
                 IFolder jobFolder = helper.getProcessFolder(type).getFolder(itemRelativePath).getFolder(jobFolderName);
                 if (!jobProject.exists() || TalendCodeProjectUtil.needRecreate(monitor, jobProject)) {
-                    createMavenJavaProject(monitor, jobProject, jobFolder);
+                    createMavenJavaProject(monitor, jobProject, jobFolder, enbleMavenNature);
                 }
                 IJavaProject javaProject = JavaCore.create(jobProject);
-                if (!javaProject.isOpen()) {
-                    javaProject.open(monitor);
-                }
                 talendJobJavaProject = new TalendProcessJavaProject(javaProject, property);
                 if (talendJobJavaProject != null) {
                     AggregatorPomsHelper.checkJobPomCreation(talendJobJavaProject);
@@ -234,6 +250,12 @@ public class TalendJavaProjectManager {
                     pomSynchronizer.cleanMavenFiles(monitor);
                 }
                 talendJobJavaProjects.put(jobProjectId, talendJobJavaProject);
+            } else {
+                if (enbleMavenNature) {
+                    MavenProjectUtils.enableMavenNature(monitor, talendJobJavaProject.getProject());
+                } else {
+                    // MavenProjectUtils.disableMavenNature(monitor, talendJobJavaProject.getProject());
+                }
             }
         } catch (Exception e) {
             ExceptionHandler.process(e);
@@ -405,15 +427,15 @@ public class TalendJavaProjectManager {
         ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
     }
 
-    private static void createMavenJavaProject(IProgressMonitor monitor, IProject jobProject, IFolder projectFolder)
-            throws CoreException, Exception {
+    private static void createMavenJavaProject(IProgressMonitor monitor, IProject jobProject, IFolder projectFolder,
+            boolean enbleMavenNature) throws CoreException, Exception {
         if (jobProject.exists()) {
             if (jobProject.isOpen()) {
                 jobProject.close(monitor);
             }
             jobProject.delete(false, true, monitor);
         }
-        CreateMavenCodeProject createProject = new CreateMavenCodeProject(jobProject);
+        CreateMavenCodeProject createProject = new CreateMavenCodeProject(jobProject, enbleMavenNature);
         createProject.setProjectLocation(projectFolder.getLocation());
         createProject.setPomFile(projectFolder.getFile(TalendMavenConstants.POM_FILE_NAME));
         createProject.create(monitor);
@@ -442,6 +464,9 @@ public class TalendJavaProjectManager {
             public void run(IProgressMonitor monitor) throws CoreException {
                 IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
                 for (IProject project : projects) {
+                    if (!project.isOpen()) {
+                        project.open(monitor);
+                    }
                     if (project.hasNature(natureId)) {
                         IFile eclipseClasspath = project.getFile(CLASSPATH_FILE_NAME);
                         if (eclipseClasspath.exists()) {

@@ -34,14 +34,11 @@ import org.eclipse.core.runtime.IPath;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.model.general.Project;
 import org.talend.core.model.properties.Property;
-import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.repository.IRepositoryViewObject;
-import org.talend.core.repository.utils.ItemResourceUtil;
 import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.utils.PomIdsHelper;
 import org.talend.designer.maven.utils.PomUtil;
-import org.talend.repository.ProjectManager;
 import org.talend.repository.model.DeploymentConfsModel;
 import org.talend.utils.json.JSONException;
 import org.talend.utils.json.JSONObject;
@@ -182,16 +179,7 @@ public class DeploymentConfsUtils {
     }
 
     public static IPath getJobProjectPath(Property property, String realVersion) {
-        // without create/open project
-        String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
-        Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
-        String version = realVersion == null ? property.getVersion() : realVersion;
-        IPath path = ItemResourceUtil.getItemRelativePath(property);
-        IFolder processTypeFolder = new AggregatorPomsHelper(project)
-                .getProcessFolder(ERepositoryObjectType.getItemType(property.getItem()));
-        path = processTypeFolder.getLocation().append(path);
-        path = path.append(AggregatorPomsHelper.getJobProjectFolderName(property.getLabel(), version));
-        return path;
+        return AggregatorPomsHelper.getJobProjectPath(property, realVersion);
     }
 
     private void updateConfPom(IFolder confFolder, Collection<String> modules) throws Exception {

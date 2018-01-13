@@ -549,4 +549,14 @@ public class TestProcessor implements IProcessor {
 
     }
 
+    @Override
+    public void setSkipClasspathJar(boolean skipClasspathJar) {
+        
+    }
+
+    @Override
+    public boolean isSkipClasspathJar() {
+        return false;
+    }
+
 }
