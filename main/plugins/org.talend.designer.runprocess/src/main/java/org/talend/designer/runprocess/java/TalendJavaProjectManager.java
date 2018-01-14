@@ -12,20 +12,7 @@
 // ============================================================================
 package org.talend.designer.runprocess.java;
 
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.CLASSPATH_FILE_NAME;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_BEANS;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_CODES;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_DEPLOYMENTS;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_JOBS;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PIGUDFS;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_MR;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_ROUTES;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_SERVICES;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_PROCESS_STORM;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.DIR_ROUTINES;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.FILE_POM_CI_BUILDER;
-import static org.talend.designer.maven.model.TalendJavaProjectConstants.PROJECT_FILE_NAME;
+import static org.talend.designer.maven.model.TalendJavaProjectConstants.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,6 +60,7 @@ import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.process.LastGenerationInfo;
 import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.core.IDesignerCoreService;
+import org.talend.designer.maven.model.TalendJavaProjectConstants;
 import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.MavenPomSynchronizer;
@@ -112,8 +100,8 @@ public class TalendJavaProjectManager {
 
                     // deployments
                     if (PluginChecker.isTIS()) {
-                        IFolder deployments = createFolderIfNotExist(poms.getFolder(DIR_DEPLOYMENTS), monitor);
-                        IFile ciPomFile = deployments.getFile(FILE_POM_CI_BUILDER);
+                        IFolder aggregators = createFolderIfNotExist(poms.getFolder(DIR_AGGREGATORS), monitor);
+                        IFile ciPomFile = aggregators.getFile(TalendJavaProjectConstants.FILE_POM_CI_BUILDER);
                         if (!ciPomFile.exists()) {
                             helper.createCIPom(ciPomFile, monitor);
                         }
