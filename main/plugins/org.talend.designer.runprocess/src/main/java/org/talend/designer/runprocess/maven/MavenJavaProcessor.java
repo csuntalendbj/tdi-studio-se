@@ -333,19 +333,23 @@ public class MavenJavaProcessor extends JavaProcessor {
                 // enable maven nature in case project not create yet.
                 MavenProjectUtils.enableMavenNature(monitor, project);
             } else {
-                // update in case new dependencies installation.
+                // FIXME should update when new dependencies installed.
                 MavenProjectUtils.updateMavenProject(monitor, talendJavaProject.getProject());
             }
             // close all sub job's maven project to let main job project use dependencies in m2 instead of maven project.
             // FIXME should reopen those projects after execution.
+            JobInfo mainJobInfo = LastGenerationInfo.getInstance().getLastMainJob();
             Set<JobInfo> allJobs = LastGenerationInfo.getInstance().getLastGeneratedjobs();
             for (JobInfo jobInfo : allJobs) {
-                ITalendProcessJavaProject subJobProject = TalendJavaProjectManager.getExistingTalendJobProject(jobInfo.getJobId(), jobInfo.getJobVersion());
-                if (subJobProject != null) {
-                    IProject subProject = subJobProject.getProject();
-                    if (MavenProjectUtils.hasMavenNature(subProject) && subProject.isOpen()) {
-                        getTalendJavaProject().getJavaProject().close();
-                        subProject.close(monitor);
+                if (mainJobInfo != jobInfo) {
+                    ITalendProcessJavaProject subJobProject = TalendJavaProjectManager
+                            .getExistingTalendJobProject(jobInfo.getJobId(), jobInfo.getJobVersion());
+                    if (subJobProject != null) {
+                        IProject subProject = subJobProject.getProject();
+                        if (MavenProjectUtils.hasMavenNature(subProject) && subProject.isOpen()) {
+                            getTalendJavaProject().getJavaProject().close();
+                            subProject.close(monitor);
+                        }
                     }
                 }
             }
