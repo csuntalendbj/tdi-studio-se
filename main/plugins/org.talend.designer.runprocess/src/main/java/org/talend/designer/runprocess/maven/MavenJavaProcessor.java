@@ -81,7 +81,8 @@ public class MavenJavaProcessor extends JavaProcessor {
         super.generateCode(statistics, trace, javaProperties, option);
         if (isStandardJob()) {
             int options = ProcessUtils.getOptionValue(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION, 0);
-            if (isExportConfig() && !BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
+            if (isExportConfig()
+                    && !BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
                 PomUtil.backupPomFile(getTalendJavaProject());
                 generatePom(option);
             }
@@ -104,9 +105,8 @@ public class MavenJavaProcessor extends JavaProcessor {
             if (property != null && property.getItem() != null) {
                 Set<JobInfo> infos = ProcessorUtilities.getChildrenJobInfo((ProcessItem) property.getItem());
                 for (JobInfo jobInfo : infos) {
-                    if (jobInfo.isTestContainer()
-                            && !ProcessUtils.isOptionChecked(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION,
-                                    TalendProcessOptionConstants.GENERATE_TESTS)) {
+                    if (jobInfo.isTestContainer() && !ProcessUtils.isOptionChecked(getArguments(),
+                            TalendProcessArgumentConstant.ARG_GENERATE_OPTION, TalendProcessOptionConstants.GENERATE_TESTS)) {
                         continue;
                     }
                     buildChildrenJobs.add(jobInfo);
@@ -130,7 +130,7 @@ public class MavenJavaProcessor extends JavaProcessor {
 
             String contextName = JavaResourcesHelper.getJobContextName(this.context);
             String oldTarget = this.getTargetPlatform();
-            boolean oldBuild = this.isOldBuildJob(); 
+            boolean oldBuild = this.isOldBuildJob();
             setPlatformValues(Platform.OS_WIN32, contextName);
             setPlatformValues(Platform.OS_LINUX, contextName);
             this.setTargetPlatform(oldTarget);
@@ -327,7 +327,7 @@ public class MavenJavaProcessor extends JavaProcessor {
             final Map<String, Object> argumentsMap = new HashMap<String, Object>();
             argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_INSTALL);
             argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS,
-                    "-T 1C -f "+ BuildCacheManager.BUILD_AGGREGATOR_POM_NAME+" " + TalendMavenConstants.ARG_SKIP_CI_BUILDER); // $NON-NLS-N$
+                    "-T 1C -f " + BuildCacheManager.BUILD_AGGREGATOR_POM_NAME + " " + TalendMavenConstants.ARG_SKIP_CI_BUILDER); // $NON-NLS-N$
             // install all subjobs
             buildCacheManager.build(monitor, argumentsMap);
 
@@ -335,13 +335,12 @@ public class MavenJavaProcessor extends JavaProcessor {
                 // enable maven nature in case project not create yet.
                 MavenProjectUtils.enableMavenNature(monitor, project);
             } else {
-                // FIXME should update when new dependencies installed.
-                if (!CommonUIPlugin.isFullyHeadless()) {
-                    // only refresh in studio
+                if (buildCacheManager.needTempAggregator()) {
                     MavenProjectUtils.updateMavenProject(monitor, talendJavaProject.getProject());
                 }
             }
-            // close all sub job's maven project to let main job project use dependencies in m2 instead of maven project.
+            // close all sub job's maven project to let main job project use dependencies in m2 instead of maven
+            // project.
             // FIXME should reopen those projects after execution.
             JobInfo mainJobInfo = LastGenerationInfo.getInstance().getLastMainJob();
             Set<JobInfo> allJobs = LastGenerationInfo.getInstance().getLastGeneratedjobs();
@@ -370,8 +369,9 @@ public class MavenJavaProcessor extends JavaProcessor {
         final Map<String, Object> argumentsMap = new HashMap<>();
         argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, goal);
         if (isGoalPackage) {
-            argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, "-Dmaven.main.skip=true -Dmaven.test.skip=true  -P !" //$NON-NLS-1$
-                    + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY);
+            argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS,
+                    "-Dmaven.main.skip=true -Dmaven.test.skip=true  -P !" //$NON-NLS-1$
+                            + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY);
         }
         talendJavaProject.buildModules(monitor, null, argumentsMap);
         if (isGoalPackage) {
@@ -379,7 +379,8 @@ public class MavenJavaProcessor extends JavaProcessor {
                 jobJarFile.refreshLocal(IResource.DEPTH_ONE, null);
             }
             if (jobJarFile == null || !jobJarFile.exists()) {
-                String mvnLogFilePath = talendJavaProject.getProject().getFile("lastGenerated.log").getLocation().toPortableString(); //$NON-NLS-1$
+                String mvnLogFilePath = talendJavaProject.getProject().getFile("lastGenerated.log").getLocation() //$NON-NLS-1$
+                        .toPortableString();
                 throw new Exception(Messages.getString("BuildJobManager.mavenErrorMessage", mvnLogFilePath)); //$NON-NLS-1$
             }
         }
