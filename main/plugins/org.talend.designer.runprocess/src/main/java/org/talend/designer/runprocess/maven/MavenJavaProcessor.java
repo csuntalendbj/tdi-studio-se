@@ -327,7 +327,7 @@ public class MavenJavaProcessor extends JavaProcessor {
             final Map<String, Object> argumentsMap = new HashMap<String, Object>();
             argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_INSTALL);
             argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS,
-                    "-T 1C -f build-aggregator.pom " + TalendMavenConstants.ARG_SKIP_CI_BUILDER); // $NON-NLS-N$
+                    "-T 1C -f "+ BuildCacheManager.BUILD_AGGREGATOR_POM_NAME+" " + TalendMavenConstants.ARG_SKIP_CI_BUILDER); // $NON-NLS-N$
             // install all subjobs
             buildCacheManager.build(monitor, argumentsMap);
 

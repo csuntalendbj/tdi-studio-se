@@ -55,6 +55,7 @@ public class JobDesignImportHandler extends ImportRepTypeHandler {
 
     @Override
     protected void afterApplyMigrationTasks(ImportItem importItem) throws Exception {
+        super.afterApplyMigrationTasks(importItem);
         Item tmpItem = importItem.getItem();
         if (tmpItem instanceof ProcessItem) {
             ProcessItem processItem = (ProcessItem) tmpItem;
