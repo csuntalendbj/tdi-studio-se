@@ -13,8 +13,10 @@
 package org.talend.designer.runprocess.java;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -265,10 +267,24 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
     @Override
     public void buildModules(IProgressMonitor monitor, String[] childrenModules, Map<String, Object> argumentsMap)
             throws Exception {
-        String goals = null;
-        if (argumentsMap != null) {
-            goals = (String) argumentsMap.get(TalendProcessArgumentConstant.ARG_GOAL);
+        if (argumentsMap == null) {
+            argumentsMap = new HashMap<>();
         }
+        String goals = (String) argumentsMap.get(TalendProcessArgumentConstant.ARG_GOAL);
+        String proArgs = (String) argumentsMap.get(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS);
+        // force to skip ci-builder
+        if (StringUtils.isBlank(proArgs)) {
+            proArgs = TalendMavenConstants.ARG_SKIP_CI_BUILDER;
+        } else {
+            if (!StringUtils.contains(proArgs, TalendMavenConstants.PROFILE_CI_BUILDER)) {
+                if (StringUtils.contains(proArgs, "-P")) { //$NON-NLS-1$
+                    StringUtils.replace(proArgs, "-P", TalendMavenConstants.ARG_SKIP_CI_BUILDER); //$NON-NLS-1$
+                } else {
+                    proArgs += " " + TalendMavenConstants.ARG_SKIP_CI_BUILDER; //$NON-NLS-1$
+                }
+            }
+        }
+        argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, proArgs);
         if (childrenModules == null) {
             if (goals != null && goals.trim().length() > 0) {
                 mavenBuildCodeProjectPom(goals, TalendMavenConstants.CURRENT_PATH, argumentsMap, monitor);

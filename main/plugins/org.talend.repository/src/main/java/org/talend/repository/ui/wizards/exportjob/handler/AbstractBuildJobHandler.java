@@ -256,6 +256,9 @@ public abstract class AbstractBuildJobHandler implements IBuildJobHandler, IBuil
             addArg(profileBuffer, isBinaries, TalendMavenConstants.PROFILE_INCLUDE_PIGUDFS_BINARIES);
             addArg(profileBuffer, !isBinaries, TalendMavenConstants.PROFILE_INCLUDE_PIGUDFS_JAVA_SOURCES);
         }
+        // always disable ci-builder from studio/commandline
+        addArg(profileBuffer, false, TalendMavenConstants.PROFILE_CI_BUILDER);
+
         return profileBuffer;
     }
 

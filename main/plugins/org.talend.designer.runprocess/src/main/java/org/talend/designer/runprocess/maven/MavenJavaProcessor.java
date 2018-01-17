@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.talend.commons.exception.ExceptionHandler;
+import org.talend.commons.ui.runtime.CommonUIPlugin;
 import org.talend.commons.utils.generation.JavaUtils;
 import org.talend.commons.utils.resource.FileExtensions;
 import org.talend.core.model.process.IProcess;
@@ -325,7 +326,8 @@ public class MavenJavaProcessor extends JavaProcessor {
         if (isMainJob) {
             final Map<String, Object> argumentsMap = new HashMap<String, Object>();
             argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_INSTALL);
-            argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, "-T 1C -f build-aggregator.pom"); // $NON-NLS-N$
+            argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS,
+                    "-T 1C -f build-aggregator.pom " + TalendMavenConstants.ARG_SKIP_CI_BUILDER); // $NON-NLS-N$
             // install all subjobs
             buildCacheManager.build(monitor, argumentsMap);
 
@@ -334,7 +336,10 @@ public class MavenJavaProcessor extends JavaProcessor {
                 MavenProjectUtils.enableMavenNature(monitor, project);
             } else {
                 // FIXME should update when new dependencies installed.
-                MavenProjectUtils.updateMavenProject(monitor, talendJavaProject.getProject());
+                if (!CommonUIPlugin.isFullyHeadless()) {
+                    // only refresh in studio
+                    MavenProjectUtils.updateMavenProject(monitor, talendJavaProject.getProject());
+                }
             }
             // close all sub job's maven project to let main job project use dependencies in m2 instead of maven project.
             // FIXME should reopen those projects after execution.
