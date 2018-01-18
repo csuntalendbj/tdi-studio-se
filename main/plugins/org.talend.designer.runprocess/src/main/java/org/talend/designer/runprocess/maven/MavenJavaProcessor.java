@@ -335,7 +335,7 @@ public class MavenJavaProcessor extends JavaProcessor {
                 // enable maven nature in case project not create yet.
                 MavenProjectUtils.enableMavenNature(monitor, project);
             } else {
-                if (buildCacheManager.needTempAggregator()) {
+                if (buildCacheManager.needTempAggregator() || !CommonUIPlugin.isFullyHeadless()) {
                     MavenProjectUtils.updateMavenProject(monitor, talendJavaProject.getProject());
                 }
             }

@@ -171,9 +171,7 @@
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>
 			<includes>
-				<include>${talend.libraries.includes.set}</include>
-				<include>${routines.binaries.includes.set}</include>
-				<include>${pigudfs.binaries.includes.set}</include>
+				<!--@TalendLibIncludes@-->
 			</includes>
 			<!-- without version for talend libraries -->
 			<outputFileNameMapping>${artifact.artifactId}.${artifact.extension}
@@ -182,19 +180,16 @@
 		</dependencySet>
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>
-			<excludes>
-				<exclude>${talend.libraries.excludes.set}</exclude>
-				<exclude>${talend.jobs.excludes.set}</exclude>
-				<exclude>${talend.code.excludes.set}</exclude>
-				<exclude>${talend.pigudf.excludes.set}</exclude>
-			</excludes>
+			<includes>
+				<!--@3rdPartyLibIncludes@-->
+			</includes>
 			<useProjectArtifact>false</useProjectArtifact>
 		</dependencySet>
-		<!-- for children jobs -->
+		<!-- for all jobs -->
 		<dependencySet>
 			<outputDirectory>${talend.job.name}</outputDirectory>
 			<includes>
-				<include>${jobs.binaries.includes.set}</include>
+				<!--@JobIncludes@-->
 			</includes>
 			<outputFileNameMapping>${artifact.build.finalName}.${artifact.extension}</outputFileNameMapping>
 			<useProjectArtifact>true</useProjectArtifact>

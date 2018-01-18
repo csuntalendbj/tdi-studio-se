@@ -46,8 +46,10 @@
 		<talend.job.finalName>@JobFinalName@</talend.job.finalName>
 
 		<!-- for global properties -->
-		<current.resources.dir>${basedir}/src/main/resources</current.resources.dir>
+		<current.int-resources.dir>${basedir}/src/main/resources</current.int-resources.dir>
 		<output.resources.dir>${talend.job.name}/src/main/resources</output.resources.dir>
+		<current.resources.dir>${basedir}/src/main/ext-resources</current.resources.dir>
+		<current.test.resources.dir>${basedir}/src/test/resources</current.test.resources.dir>
 	</properties>
 
 	<dependencies>
@@ -56,65 +58,6 @@
 
 	<build>
 		<finalName>${talend.job.finalName}</finalName>
-		<resources>
-			<resource>
-				<directory>${project.build.sourceDirectory}</directory>
-				<includes>
-					<include>**/*.wsdl</include>
-				</includes>
-			</resource>
-		</resources>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-running-resources</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration> <!-- copy the contexts for running job -->
-							<outputDirectory>${project.build.outputDirectory}/${talend.job.path}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${current.resources.dir}/${talend.job.path}</directory>
-									<includes>
-										<include>contexts/*.properties</include>
-									</includes>
-								</resource>
-								<resource>
-									<directory>${current.resources.dir}/metadata/survivorship/</directory>
-									<includes>
-										<include>**/*.*</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>default-jar</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<includes>
-								<include>${talend.job.path}/*.class</include>
-								<include>${talend.job.path}/**/*.wsdl</include>
-								<include>/metadata/survivorship/**/*.*</include>
-							</includes>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 	</build>
 	<profiles>
 		<profile>

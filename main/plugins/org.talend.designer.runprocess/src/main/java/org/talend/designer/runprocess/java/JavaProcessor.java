@@ -1289,20 +1289,31 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
                 basePath.append(codeLocation);
             }
         } else {
+            // add main job classes folder
             ITalendProcessJavaProject tProcessJvaProject = this.getTalendJavaProject();
             IFolder classesFolder = tProcessJvaProject.getOutputFolder();
             String outputPath = classesFolder.getLocation().toPortableString();
             outputPath += classPathSeparator;
             basePath.append(outputPath);
             
+            // add main job src/main/resource folder as ext-resources
+            String externalResourcePath = tProcessJvaProject.getResourcesFolder().getLocation().toPortableString();
+            externalResourcePath += classPathSeparator;
+            basePath.append(externalResourcePath);
             // add subjobs
             Set<JobInfo> subjobs = this.getBuildChildrenJobs();
             for (JobInfo info : subjobs) {
+                // add sub job classes folder
                 ITalendProcessJavaProject subjobPrject = TalendJavaProjectManager.getTalendJobJavaProject(info.getProcessItem().getProperty());
                 IFolder subjobClassesFolder = subjobPrject.getOutputFolder();
                 String subjobOutputPath = subjobClassesFolder.getLocation().toPortableString();
                 subjobOutputPath += classPathSeparator;
                 basePath.append(subjobOutputPath);
+
+                // add sub job src/main/resource folder as ext-resources
+                String subjobExternalResourcePath = subjobPrject.getResourcesFolder().getLocation().toPortableString();
+                subjobExternalResourcePath += classPathSeparator;
+                basePath.append(subjobExternalResourcePath);
             }
             
             ITalendProcessJavaProject routineProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
