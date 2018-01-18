@@ -435,8 +435,8 @@ public class RunProcessService implements IRunProcessService {
     }
 
     @Override
-    public void buildCodesJavaProject() {
-        delegateService.buildCodesJavaProject();
+    public void buildCodesJavaProject(IProgressMonitor monitor) {
+        delegateService.buildCodesJavaProject(monitor);
     }
 
     @Override

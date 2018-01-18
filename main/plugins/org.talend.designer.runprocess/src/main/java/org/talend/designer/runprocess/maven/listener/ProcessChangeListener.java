@@ -28,11 +28,13 @@ import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
+import org.talend.core.model.properties.RoutineItem;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.repository.IRepositoryViewObject;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
+import org.talend.designer.maven.tools.BuildCacheManager;
 import org.talend.designer.runprocess.java.TalendJavaProjectManager;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.RepositoryWorkUnit;
@@ -72,8 +74,9 @@ public class ProcessChangeListener implements PropertyChangeListener {
                 } else if (propertyName.equals(ERepositoryActionName.FOLDER_DELETE.getName())) {
                     caseFolderDelete(oldValue, newValue);
                 } else if (propertyName.equals(ERepositoryActionName.SAVE.getName())
-                        || propertyName.equals(ERepositoryActionName.IMPORT.getName())) {
-                    caseSave(newValue);
+                        || propertyName.equals(ERepositoryActionName.IMPORT.getName())
+                        || propertyName.equals(ERepositoryActionName.CREATE.getName())) {
+                    caseSave(propertyName, newValue);
                 }
             }
         };
@@ -218,9 +221,20 @@ public class ProcessChangeListener implements PropertyChangeListener {
         }
     }
 
-    private void caseSave(Object newValue) {
-        if (newValue instanceof ProcessItem) {
-            TalendJavaProjectManager.generatePom((ProcessItem) newValue);
+    private void caseSave(String propertyName, Object newValue) {
+        if (!propertyName.equals(ERepositoryActionName.CREATE.getName())) {
+            if (newValue instanceof ProcessItem) {
+                TalendJavaProjectManager.generatePom((ProcessItem) newValue);
+            }
+        }
+        caseCodesChange(newValue);
+    }
+
+    private void caseCodesChange(Object newValue) {
+        if (newValue instanceof RoutineItem) {
+            RoutineItem codesItem = (RoutineItem) newValue;
+            ERepositoryObjectType type = ERepositoryObjectType.getItemType(codesItem);
+            BuildCacheManager.getInstance().updateCodesLastChangeDate(type, codesItem.getProperty());
         }
     }
 
