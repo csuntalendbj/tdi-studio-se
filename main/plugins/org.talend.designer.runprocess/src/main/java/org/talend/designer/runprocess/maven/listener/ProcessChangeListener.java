@@ -15,6 +15,7 @@ package org.talend.designer.runprocess.maven.listener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -26,6 +27,7 @@ import org.eclipse.ltk.core.refactoring.resource.MoveResourceChange;
 import org.eclipse.ltk.core.refactoring.resource.RenameResourceChange;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.GlobalServiceRegister;
+import org.talend.core.model.properties.Item;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.properties.RoutineItem;
@@ -74,9 +76,10 @@ public class ProcessChangeListener implements PropertyChangeListener {
                 } else if (propertyName.equals(ERepositoryActionName.FOLDER_DELETE.getName())) {
                     caseFolderDelete(oldValue, newValue);
                 } else if (propertyName.equals(ERepositoryActionName.SAVE.getName())
-                        || propertyName.equals(ERepositoryActionName.IMPORT.getName())
                         || propertyName.equals(ERepositoryActionName.CREATE.getName())) {
-                    caseSave(propertyName, newValue);
+                    caseCreateAndSave(propertyName, newValue);
+                } else if (propertyName.equals(ERepositoryActionName.IMPORT.getName())) {
+                    caseImport(propertyName, newValue);
                 }
             }
         };
@@ -221,21 +224,35 @@ public class ProcessChangeListener implements PropertyChangeListener {
         }
     }
 
-    private void caseSave(String propertyName, Object newValue) {
-        if (!propertyName.equals(ERepositoryActionName.CREATE.getName())) {
+    private void caseCreateAndSave(String propertyName, Object newValue) {
+        if (newValue instanceof Item) {
             if (newValue instanceof ProcessItem) {
-                TalendJavaProjectManager.generatePom((ProcessItem) newValue);
+                if (propertyName.equals(ERepositoryActionName.SAVE.getName())) {
+                    TalendJavaProjectManager.generatePom((ProcessItem) newValue);
+                }
+            } else if (newValue instanceof RoutineItem) {
+                updateCodesChange((RoutineItem) newValue);
             }
         }
-        caseCodesChange(newValue);
     }
 
-    private void caseCodesChange(Object newValue) {
-        if (newValue instanceof RoutineItem) {
-            RoutineItem codesItem = (RoutineItem) newValue;
-            ERepositoryObjectType type = ERepositoryObjectType.getItemType(codesItem);
-            BuildCacheManager.getInstance().updateCodesLastChangeDate(type, codesItem.getProperty());
+    @SuppressWarnings("unchecked")
+    private void caseImport(String propertyName, Object newValue) {
+        if (newValue instanceof Set) {
+            Set<Item> importItems = (Set<Item>) newValue;
+            for (Item item : importItems) {
+                if (item instanceof ProcessItem) {
+                    TalendJavaProjectManager.generatePom((ProcessItem) item);
+                } else if (item instanceof RoutineItem) {
+                    updateCodesChange((RoutineItem) item);
+                }
+            }
         }
+    }
+
+    private void updateCodesChange(RoutineItem codesItem) {
+        ERepositoryObjectType type = ERepositoryObjectType.getItemType(codesItem);
+        BuildCacheManager.getInstance().updateCodesLastChangeDate(type, codesItem.getProperty());
     }
 
     private ITestContainerProviderService getTestContainerProviderService() {
