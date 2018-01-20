@@ -324,7 +324,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
             outputFolder = tProcessJavaProject.getTestOutputFolder();
         } else {
             srcFolder = tProcessJavaProject.getSrcFolder();
-            resourcesFolder = tProcessJavaProject.getResourcesFolder();
+            resourcesFolder = tProcessJavaProject.getExternalResourcesFolder();
             outputFolder = tProcessJavaProject.getOutputFolder();
         }
 
@@ -1297,7 +1297,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
             basePath.append(outputPath);
             
             // add main job src/main/resource folder as ext-resources
-            String externalResourcePath = tProcessJvaProject.getResourcesFolder().getLocation().toPortableString();
+            String externalResourcePath = tProcessJvaProject.getExternalResourcesFolder().getLocation().toPortableString();
             externalResourcePath += classPathSeparator;
             basePath.append(externalResourcePath);
             // add subjobs
@@ -1311,7 +1311,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
                 basePath.append(subjobOutputPath);
 
                 // add sub job src/main/resource folder as ext-resources
-                String subjobExternalResourcePath = subjobPrject.getResourcesFolder().getLocation().toPortableString();
+                String subjobExternalResourcePath = subjobPrject.getExternalResourcesFolder().getLocation().toPortableString();
                 subjobExternalResourcePath += classPathSeparator;
                 basePath.append(subjobExternalResourcePath);
             }
@@ -1768,7 +1768,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
             if (tProcessJvaProject == null) {
                 return;
             }
-            IFolder esbConfigsTargetFolder = tProcessJvaProject.getResourcesFolder();
+            IFolder esbConfigsTargetFolder = tProcessJvaProject.getExternalResourcesFolder();
 
             // add SAM config file to classpath
             if (samEnabled) {

@@ -1063,7 +1063,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
                         return;
                     }
                     // for db mapping xml
-                    IFolder xmlMappingFolder = talendProcessJavaProject.getResourcesFolder()
+                    IFolder xmlMappingFolder = talendProcessJavaProject.getExternalResourcesFolder()
                             .getFolder(JavaUtils.JAVA_XML_MAPPING);
                     if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
                         IRunProcessService runService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(IRunProcessService.class);
@@ -1100,7 +1100,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
                         IRunProcessService.class);
                 ITalendProcessJavaProject talendProcessJavaProject = processService.getTalendJobJavaProject(resource.getItem().getProperty());
                 if (talendProcessJavaProject != null) {
-                    IFolder resourcesFolder = talendProcessJavaProject.getResourcesFolder();
+                    IFolder resourcesFolder = talendProcessJavaProject.getExternalResourcesFolder();
                     IFile log4jFile = resourcesFolder.getFile(Log4jPrefsConstants.LOG4J_FILE_NAME);
                     if (log4jFile.exists()) {
                         List<URL> log4jFileUrls = new ArrayList<URL>();
@@ -1313,7 +1313,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
             try {
                 ITalendProcessJavaProject talendProcessJavaProject = processService.getTempJavaProject();
                 if (talendProcessJavaProject != null) {
-                    IFolder resourcesFolder = talendProcessJavaProject.getResourcesFolder();
+                    IFolder resourcesFolder = talendProcessJavaProject.getExternalResourcesFolder();
                     IFile log4jFile = resourcesFolder.getFile(Log4jPrefsConstants.LOG4J_FILE_NAME);
                     if (log4jFile.exists()) {
                         list.add(FileLocator.toFileURL(log4jFile.getLocationURI().toURL()));
@@ -1337,7 +1337,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
             try {
                 ITalendProcessJavaProject talendProcessJavaProject = processService.getTalendJobJavaProject(libResource.getItem().getProperty());
                 if (talendProcessJavaProject != null) {
-                    IFolder resourcesFolder = talendProcessJavaProject.getResourcesFolder();
+                    IFolder resourcesFolder = talendProcessJavaProject.getExternalResourcesFolder();
                     IFile log4jFile = resourcesFolder.getFile(Log4jPrefsConstants.LOG4J_FILE_NAME);
                     if (log4jFile.exists()) {
                         list.add(log4jFile.getLocationURI().toURL());

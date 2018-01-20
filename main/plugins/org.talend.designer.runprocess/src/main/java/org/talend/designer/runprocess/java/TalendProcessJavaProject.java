@@ -119,12 +119,12 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
     }
 
     @Override
-    public IFolder getResourcesFolder() {
+    public IFolder getExternalResourcesFolder() {
         return createFolder(MavenSystemFolders.EXT_RESOURCES.getPath());
     }
 
     @Override
-    public IFolder getInternalResourcesFolder() {
+    public IFolder getResourcesFolder() {
         return createFolder(MavenSystemFolders.RESOURCES.getPath());
     }
 
@@ -185,7 +185,7 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
 
     @Override
     public IFolder getResourceSubFolder(IProgressMonitor monitor, String path) {
-        return createSubFolder(monitor, getResourcesFolder(), path);
+        return createSubFolder(monitor, getExternalResourcesFolder(), path);
     }
 
     /**

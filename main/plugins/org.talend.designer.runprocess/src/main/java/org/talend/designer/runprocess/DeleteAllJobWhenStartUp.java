@@ -90,7 +90,7 @@ public class DeleteAllJobWhenStartUp implements IStartup {
                     IFolder srcFolder = talendJavaProject.getSrcFolder();
                     talendJavaProject.cleanFolder(monitor, srcFolder);
                     // contexts
-                    IFolder resourcesFolder = talendJavaProject.getResourcesFolder();
+                    IFolder resourcesFolder = talendJavaProject.getExternalResourcesFolder();
                     emptyContexts(monitor, resourcesFolder, talendJavaProject);
 
                     // empty the outputs, target

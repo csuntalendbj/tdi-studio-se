@@ -208,7 +208,7 @@ public class ContextModifyCommand extends Command {
                     IRunProcessService.class);
             ITalendProcessJavaProject talendProcessJavaProject = service.getTalendJobJavaProject(process.getProperty());
             if (talendProcessJavaProject != null) {
-                IFolder srcFolder = talendProcessJavaProject.getResourcesFolder();
+                IFolder srcFolder = talendProcessJavaProject.getExternalResourcesFolder();
                 return srcFolder.getFile(path);
             }
         }

@@ -80,12 +80,13 @@ public class MavenJavaProcessor extends JavaProcessor {
     public void generateCode(boolean statistics, boolean trace, boolean javaProperties, int option) throws ProcessorException {
         super.generateCode(statistics, trace, javaProperties, option);
         if (isStandardJob()) {
-            int options = ProcessUtils.getOptionValue(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION, 0);
-            if (isExportConfig()
-                    && !BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
-                PomUtil.backupPomFile(getTalendJavaProject());
-                generatePom(option);
-            }
+            // disable backup... why did we need this before??? we should never need this
+            // PomUtil.backupPomFile(getTalendJavaProject());
+
+            // we need to generate the pom everytime since we have a classpath adjuster
+            // means classpath can be changed during the code generation itself by anything using the IClasspathAdjuster
+            // (currently TDM)
+            generatePom(option);
         } else {
             // for Shadow Process/Data Preview
             try {
@@ -327,7 +328,8 @@ public class MavenJavaProcessor extends JavaProcessor {
             final Map<String, Object> argumentsMap = new HashMap<String, Object>();
             argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_INSTALL);
             argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS,
-                    "-T 1C -f " + BuildCacheManager.BUILD_AGGREGATOR_POM_NAME + " " + TalendMavenConstants.ARG_SKIP_CI_BUILDER+",!"+TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY); // $NON-NLS-N$
+                    "-T 1C -f " + BuildCacheManager.BUILD_AGGREGATOR_POM_NAME + " " + TalendMavenConstants.ARG_SKIP_CI_BUILDER
+                            + ",!" + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY); // $NON-NLS-N$
             // install all subjobs
             buildCacheManager.build(monitor, argumentsMap);
 

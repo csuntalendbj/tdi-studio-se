@@ -490,7 +490,7 @@ public class DefaultRunProcessService implements IRunProcessService {
             // IFolder prefSettingFolder = ResourceUtils.getFolder(
             // ResourceModelHelper.getProject(ProjectManager.getInstance().getCurrentProject()), ".settings", false);
 
-            IFolder resFolder = talendJavaProject.getResourcesFolder();
+            IFolder resFolder = talendJavaProject.getExternalResourcesFolder();
             IFile log4jFile = resFolder.getFile(Log4jPrefsConstants.LOG4J_FILE_NAME);
             // TUP-3014, update the log4j in .Java always.
             // if (isLogForJob) { // when execute or export job need the log4j files under .src folder
