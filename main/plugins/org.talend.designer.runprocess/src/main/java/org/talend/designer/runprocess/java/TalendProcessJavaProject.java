@@ -282,8 +282,8 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
             proArgs = TalendMavenConstants.ARG_SKIP_CI_BUILDER;
         } else {
             if (!StringUtils.contains(proArgs, TalendMavenConstants.PROFILE_CI_BUILDER)) {
-                if (StringUtils.contains(proArgs, "-P")) { //$NON-NLS-1$
-                    StringUtils.replace(proArgs, "-P", TalendMavenConstants.ARG_SKIP_CI_BUILDER); //$NON-NLS-1$
+                if (StringUtils.contains(proArgs, "-P ")) { //$NON-NLS-1$
+                    proArgs = StringUtils.replace(proArgs, "-P ", TalendMavenConstants.ARG_SKIP_CI_BUILDER + ","); //$NON-NLS-1$ //$NON-NLS-2$
                 } else {
                     proArgs += " " + TalendMavenConstants.ARG_SKIP_CI_BUILDER; //$NON-NLS-1$
                 }
