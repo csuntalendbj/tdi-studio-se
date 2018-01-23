@@ -18,7 +18,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.talend.commons.exception.ExceptionHandler;
-import org.talend.core.model.general.Project;
+import org.talend.core.model.properties.ProjectReference;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.login.AbstractLoginTask;
 import org.talend.repository.ProjectManager;
@@ -41,14 +41,13 @@ public class MavenPomInstallLoginTask extends AbstractLoginTask implements IRunn
             AggregatorPomsHelper helper = new AggregatorPomsHelper();
             helper.installRootPom(true);
 
-            List<Project> references = ProjectManager.getInstance().getReferencedProjects();
-            for (Project ref : references) {
-                AggregatorPomsHelper refHelper = new AggregatorPomsHelper(ref.getTechnicalLabel());
+            List<ProjectReference> references = ProjectManager.getInstance().getCurrentProject().getProjectReferenceList(true);
+            for (ProjectReference ref : references) {
+                AggregatorPomsHelper refHelper = new AggregatorPomsHelper(ref.getReferencedProject().getTechnicalLabel());
                 refHelper.installRootPom(true);
             }
-
+            AggregatorPomsHelper.updateRefProjectModules(references);
             AggregatorPomsHelper.updateCodeProjects(monitor);
-
         } catch (Exception e) {
             ExceptionHandler.process(e);
         }

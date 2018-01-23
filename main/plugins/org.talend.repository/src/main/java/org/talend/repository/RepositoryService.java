@@ -995,4 +995,20 @@ public class RepositoryService implements IRepositoryService, IRepositoryContext
         donnotRetryAgainBeforeRestart = dialog.donnotRetryAgainBeforeRestart();
         return NetworkErrorRetryDialog.BUTTON_RETRY_INDEX == result;
     }
+
+    @Override
+    public boolean isSVN() {
+        if (svnProviderService != null) {
+            return svnProviderService.isProjectInSvnMode();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isGIT() {
+        if (gitProviderService != null) {
+            return gitProviderService.isProjectInGitMode();
+        }
+        return false;
+    }
 }
