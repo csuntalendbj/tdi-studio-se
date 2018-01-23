@@ -294,6 +294,7 @@ int nb_file_<%=cid%> = 0;
 		String securityMode = ElementParameterParser.getValue(node, "__SECURITY_MODE__");
 %>
 		org.apache.commons.net.ftp.FTPSClient ftp_<%=cid %> = null;
+		String rootDir_<%=cid %> = null;
 <%
 		if(("false").equals(useExistingConn)){
 %>
@@ -330,9 +331,27 @@ int nb_file_<%=cid%> = 0;
 
 				<%@ include file="@{org.talend.designer.components.localprovider}/components/templates/password.javajet"%>
 
-				ftp_<%=cid %>.login(<%=user %>, decryptedPassword_<%=cid%>);
+				boolean isLoginSuccessful_<%=cid %> = ftp_<%=cid %>.login(<%=user %>, decryptedPassword_<%=cid%>);
+
+				if (!isLoginSuccessful_<%=cid %>) {
+					throw new RuntimeException("Login failed");
+				}
+
+				ftp_<%=cid %>.setFileType(org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE);
 				ftp_<%=cid %>.execPROT(<%=protectionLevel %>);
 				ftp_<%=cid %>.execPBSZ(<%=protectionBufferSize %>);
+<%
+				if ("PASSIVE".equals(connectMode)) {
+%>
+					ftp_<%=cid %>.enterLocalPassiveMode();
+<%
+					if (isLog4jEnabled) {
+%>
+						log.debug("<%=cid%> - Using the passive mode.");
+<%
+					}
+				}
+%>
 			} catch (Exception e) {
 				<%if(isLog4jEnabled){%>
 					log.error("<%=cid%> - " + e.getMessage());
@@ -353,13 +372,12 @@ int nb_file_<%=cid%> = 0;
 			<%
 				if(!moveToCurrentDir){
 %>
-					rootDir_<%=cid %> = ftp_<%=cid %>.currentDirectory();
+					rootDir_<%=cid %> = ftp_<%=cid %>.printWorkingDirectory();
 <%
 				}
 		}
 %>
 		String remotedir_<%=cid%> = null;
-		String rootDir_<%=cid %> = null;
 		remotedir_<%=cid%> = <%=remotedir%>; 
 		ftp_<%=cid %>.changeWorkingDirectory(remotedir_<%=cid %>); 
 		java.util.List<java.util.Map<String,String>> list<%=cid %> = new java.util.ArrayList<java.util.Map<String,String>>();

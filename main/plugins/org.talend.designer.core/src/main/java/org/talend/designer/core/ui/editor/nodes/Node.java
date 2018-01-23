@@ -4304,7 +4304,7 @@ public class Node extends Element implements IGraphicalNode {
         }
         for (ServiceReference<NodeProblem> sr : nodeProblems) {
             NodeProblem np = bc.getService(sr);
-            if (np.needsCheck(this)) {
+            if (np != null && np.needsCheck(this)) {
                 np.check(this);
             }
         }
