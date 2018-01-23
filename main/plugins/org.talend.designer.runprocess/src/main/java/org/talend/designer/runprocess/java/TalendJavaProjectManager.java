@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -94,7 +93,7 @@ public class TalendJavaProjectManager {
             protected void run() {
                 try {
                     // create aggregator poms
-                    AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
+                    AggregatorPomsHelper helper = new AggregatorPomsHelper(project.getTechnicalLabel());
                     // create poms folder.
                     IFolder poms = createFolderIfNotExist(helper.getProjectPomsFolder(), monitor);
 
@@ -150,18 +149,9 @@ public class TalendJavaProjectManager {
         ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
     }
 
-    public static void installRootPom(boolean current) {
-        AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
-        try {
-            helper.installRootPom(current);
-        } catch (Exception e) {
-            ExceptionHandler.process(e);
-        }
-    }
-
     public static ITalendProcessJavaProject getTalendCodeJavaProject(ERepositoryObjectType type) {
         Project project = ProjectManager.getInstance().getCurrentProject();
-        AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
+        AggregatorPomsHelper helper = new AggregatorPomsHelper(project.getTechnicalLabel());
         ITalendProcessJavaProject talendCodeJavaProject = talendCodeJavaProjects.get(type);
         if (talendCodeJavaProject == null || talendCodeJavaProject.getProject() == null
                 || !talendCodeJavaProject.getProject().exists()) {
@@ -218,10 +208,9 @@ public class TalendJavaProjectManager {
             if (talendJobJavaProject == null || talendJobJavaProject.getProject() == null
                     || !talendJobJavaProject.getProject().exists()) {
                 String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
-                Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
-                AggregatorPomsHelper helper = new AggregatorPomsHelper(project);
+                AggregatorPomsHelper helper = new AggregatorPomsHelper(projectTechName);
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-                IProject jobProject = root.getProject(AggregatorPomsHelper.getJobProjectName(project, property));
+                IProject jobProject = root.getProject(helper.getJobProjectName(property));
                 IPath itemRelativePath = ItemResourceUtil.getItemRelativePath(property);
                 String jobFolderName = AggregatorPomsHelper.getJobProjectFolderName(property);
                 ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
@@ -286,19 +275,8 @@ public class TalendJavaProjectManager {
         return null;
     }
 
-    public static ITalendProcessJavaProject getExistingTalendJobProject(String id, String version) {
-        return talendJobJavaProjects.get(AggregatorPomsHelper.getJobProjectId(id, version));
-    }
-
-    public static Set<ITalendProcessJavaProject> getExistingAllVersionTalendJobProject(String id) {
-        Set<ITalendProcessJavaProject> allVersionProjects = new HashSet<>();
-        for (Entry<String, ITalendProcessJavaProject> entry : talendJobJavaProjects.entrySet()) {
-            String key = entry.getKey();
-            if (key.contains(id)) {
-                allVersionProjects.add(entry.getValue());
-            }
-        }
-        return allVersionProjects;
+    public static ITalendProcessJavaProject getExistingTalendJobProject(Property property) {
+        return talendJobJavaProjects.get(AggregatorPomsHelper.getJobProjectId(property));
     }
 
     public static void deleteTalendJobProjectsUnderFolder(ERepositoryObjectType processType, IPath folderPath,
@@ -317,7 +295,7 @@ public class TalendJavaProjectManager {
             }
             if (deleteContent) {
                 // delete folder
-                AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
+                AggregatorPomsHelper helper = new AggregatorPomsHelper();
                 IFolder folder = helper.getProcessFolder(processType).getFolder(folderPath);
                 folder.delete(true, false, null);
             }
@@ -356,7 +334,7 @@ public class TalendJavaProjectManager {
                     }
                     if (deleteContent) {
                         // for logically deleted project, delete the folder directly
-                        AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
+                        AggregatorPomsHelper helper = new AggregatorPomsHelper();
                         for (IRepositoryViewObject object : allVersionObjects) {
                             String realVersion = object.getVersion();
                             Property property = object.getProperty();

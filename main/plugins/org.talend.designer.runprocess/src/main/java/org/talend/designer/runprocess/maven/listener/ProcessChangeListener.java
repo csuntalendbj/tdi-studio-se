@@ -38,7 +38,6 @@ import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.BuildCacheManager;
 import org.talend.designer.runprocess.java.TalendJavaProjectManager;
-import org.talend.repository.ProjectManager;
 import org.talend.repository.RepositoryWorkUnit;
 import org.talend.repository.documentation.ERepositoryActionName;
 
@@ -54,7 +53,7 @@ public class ProcessChangeListener implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
         if (helper == null) {
-            helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
+            helper = new AggregatorPomsHelper();
         }
         String propertyName = event.getPropertyName();
         Object oldValue = event.getOldValue();

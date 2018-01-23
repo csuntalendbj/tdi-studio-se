@@ -60,7 +60,7 @@ public class DeploymentConfsUtils {
 
     public DeploymentConfsUtils(Project project) {
         this.project = project;
-        aggregatorPomsHelper = new AggregatorPomsHelper(project);
+        aggregatorPomsHelper = new AggregatorPomsHelper(project.getTechnicalLabel());
     }
 
     public Map<String, DeploymentConfsModel> loadConfs() {
@@ -174,7 +174,7 @@ public class DeploymentConfsUtils {
         Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
         String version = realVersion == null ? property.getVersion() : realVersion;
         IPath path = ItemResourceUtil.getItemRelativePath(property);
-        IFolder processTypeFolder = new AggregatorPomsHelper(project)
+        IFolder processTypeFolder = new AggregatorPomsHelper(project.getTechnicalLabel())
                 .getProcessFolder(ERepositoryObjectType.getItemType(property.getItem()));
         path = processTypeFolder.getFullPath().append(path);
         path = path.append(AggregatorPomsHelper.getJobProjectFolderName(property.getLabel(), version));

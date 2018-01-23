@@ -49,8 +49,8 @@ import org.talend.core.runtime.repository.build.IBuildPomCreatorParameters;
 import org.talend.core.runtime.repository.build.IMavenPomCreator;
 import org.talend.core.utils.BitwiseOptionUtils;
 import org.talend.designer.maven.model.TalendMavenConstants;
+import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.BuildCacheManager;
-import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.creator.CreateMavenJobPom;
 import org.talend.designer.maven.utils.MavenProjectUtils;
 import org.talend.designer.maven.utils.PomUtil;
@@ -80,8 +80,11 @@ public class MavenJavaProcessor extends JavaProcessor {
     public void generateCode(boolean statistics, boolean trace, boolean javaProperties, int option) throws ProcessorException {
         super.generateCode(statistics, trace, javaProperties, option);
         if (isStandardJob()) {
-            // disable backup... why did we need this before??? we should never need this
-            // PomUtil.backupPomFile(getTalendJavaProject());
+            int options = ProcessUtils.getOptionValue(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION, 0);
+            if (isExportConfig()
+                    && !BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
+                PomUtil.backupPomFile(getTalendJavaProject());
+            }
 
             // we need to generate the pom everytime since we have a classpath adjuster
             // means classpath can be changed during the code generation itself by anything using the IClasspathAdjuster
@@ -91,7 +94,7 @@ public class MavenJavaProcessor extends JavaProcessor {
             // for Shadow Process/Data Preview
             try {
                 PomUtil.updatePomDependenciesFromProcessor(this);
-                new MavenPomSynchronizer(this).syncRoutinesPom(null, true);
+                AggregatorPomsHelper.createRoutinesPom(getPomFile(), null);
             } catch (Exception e) {
                 throw new ProcessorException(e);
             }
@@ -349,7 +352,7 @@ public class MavenJavaProcessor extends JavaProcessor {
             for (JobInfo jobInfo : allJobs) {
                 if (mainJobInfo != jobInfo) {
                     ITalendProcessJavaProject subJobProject = TalendJavaProjectManager
-                            .getExistingTalendJobProject(jobInfo.getJobId(), jobInfo.getJobVersion());
+                            .getExistingTalendJobProject(jobInfo.getProcessor().getProperty());
                     if (subJobProject != null) {
                         IProject subProject = subJobProject.getProject();
                         if (MavenProjectUtils.hasMavenNature(subProject) && subProject.isOpen()) {

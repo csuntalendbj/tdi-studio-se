@@ -38,12 +38,12 @@ public class MavenPomInstallLoginTask extends AbstractLoginTask implements IRunn
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         try {
-            AggregatorPomsHelper helper = new AggregatorPomsHelper(ProjectManager.getInstance().getCurrentProject());
+            AggregatorPomsHelper helper = new AggregatorPomsHelper();
             helper.installRootPom(true);
 
             List<Project> references = ProjectManager.getInstance().getReferencedProjects();
             for (Project ref : references) {
-                AggregatorPomsHelper refHelper = new AggregatorPomsHelper(ref);
+                AggregatorPomsHelper refHelper = new AggregatorPomsHelper(ref.getTechnicalLabel());
                 refHelper.installRootPom(true);
             }
 
