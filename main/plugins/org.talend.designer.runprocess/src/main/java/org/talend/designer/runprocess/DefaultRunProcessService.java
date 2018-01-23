@@ -52,20 +52,19 @@ import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.IProcess2;
 import org.talend.core.model.process.ProcessUtils;
+import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.properties.RoutineItem;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.runprocess.data.PerformanceData;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.utils.Log4jUtil;
-import org.talend.core.runtime.maven.MavenArtifact;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.projectsetting.ProjectPreferenceManager;
 import org.talend.core.service.IESBMicroService;
 import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.ProjectPomManager;
-import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.i18n.Messages;
 import org.talend.designer.runprocess.java.JavaProcessorUtilities;
 import org.talend.designer.runprocess.java.TalendJavaProjectManager;
@@ -672,8 +671,8 @@ public class DefaultRunProcessService implements IRunProcessService {
     }
 
     @Override
-    public String getAbsMavenArtifactPath(MavenArtifact artifact) {
-        return PomUtil.getAbsArtifactPath(artifact);
+    public void generateJobPom(ProcessItem processItem) {
+        TalendJavaProjectManager.generatePom(processItem);
     }
 
 }

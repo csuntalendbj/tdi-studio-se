@@ -31,10 +31,10 @@ import org.talend.core.model.general.Project;
 import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.IProcess2;
+import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.properties.RoutineItem;
 import org.talend.core.model.repository.ERepositoryObjectType;
-import org.talend.core.runtime.maven.MavenArtifact;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.projectsetting.ProjectPreferenceManager;
 import org.talend.designer.core.ui.action.SaveJobBeforeRunAction;
@@ -440,8 +440,8 @@ public class RunProcessService implements IRunProcessService {
     }
 
     @Override
-    public String getAbsMavenArtifactPath(MavenArtifact artifact) {
-        return delegateService.getAbsMavenArtifactPath(artifact);
+    public void generateJobPom(ProcessItem processItem) {
+        delegateService.generateJobPom(processItem);
     }
 
 }
