@@ -344,24 +344,6 @@ public class MavenJavaProcessor extends JavaProcessor {
                     MavenProjectUtils.updateMavenProject(monitor, talendJavaProject.getProject());
                 }
             }
-            // close all sub job's maven project to let main job project use dependencies in m2 instead of maven
-            // project.
-            // FIXME should reopen those projects after execution.
-            JobInfo mainJobInfo = LastGenerationInfo.getInstance().getLastMainJob();
-            Set<JobInfo> allJobs = LastGenerationInfo.getInstance().getLastGeneratedjobs();
-            for (JobInfo jobInfo : allJobs) {
-                if (mainJobInfo != jobInfo) {
-                    ITalendProcessJavaProject subJobProject = TalendJavaProjectManager
-                            .getExistingTalendJobProject(jobInfo.getProcessor().getProperty());
-                    if (subJobProject != null) {
-                        IProject subProject = subJobProject.getProject();
-                        if (MavenProjectUtils.hasMavenNature(subProject) && subProject.isOpen()) {
-                            getTalendJavaProject().getJavaProject().close();
-                            subProject.close(monitor);
-                        }
-                    }
-                }
-            }
         }
         IFile jobJarFile = null;
         if (!TalendMavenConstants.GOAL_COMPILE.equals(goal)) {
