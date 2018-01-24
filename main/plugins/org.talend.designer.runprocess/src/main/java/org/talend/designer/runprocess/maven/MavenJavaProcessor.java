@@ -330,9 +330,8 @@ public class MavenJavaProcessor extends JavaProcessor {
         if (isMainJob) {
             final Map<String, Object> argumentsMap = new HashMap<String, Object>();
             argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_INSTALL);
-            argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS,
-                    "-T 1C -f " + BuildCacheManager.BUILD_AGGREGATOR_POM_NAME + " " + TalendMavenConstants.ARG_SKIP_CI_BUILDER
-                            + ",!" + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY); // $NON-NLS-N$
+            argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, "-T 1C -f " // $NON-NLS-1$
+                    + BuildCacheManager.BUILD_AGGREGATOR_POM_NAME + " -P!" + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY); // $NON-NLS-1$
             // install all subjobs
             buildCacheManager.build(monitor, argumentsMap);
 

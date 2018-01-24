@@ -280,20 +280,6 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
             argumentsMap = new HashMap<>();
         }
         String goals = (String) argumentsMap.get(TalendProcessArgumentConstant.ARG_GOAL);
-        String proArgs = (String) argumentsMap.get(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS);
-        // force to skip ci-builder
-        if (StringUtils.isBlank(proArgs)) {
-            proArgs = TalendMavenConstants.ARG_SKIP_CI_BUILDER;
-        } else {
-            if (!StringUtils.contains(proArgs, TalendMavenConstants.PROFILE_CI_BUILDER)) {
-                if (StringUtils.contains(proArgs, "-P ")) { //$NON-NLS-1$
-                    proArgs = StringUtils.replace(proArgs, "-P ", TalendMavenConstants.ARG_SKIP_CI_BUILDER + ","); //$NON-NLS-1$ //$NON-NLS-2$
-                } else {
-                    proArgs += " " + TalendMavenConstants.ARG_SKIP_CI_BUILDER; //$NON-NLS-1$
-                }
-            }
-        }
-        argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, proArgs);
         if (childrenModules == null) {
             if (goals != null && goals.trim().length() > 0) {
                 mavenBuildCodeProjectPom(goals, TalendMavenConstants.CURRENT_PATH, argumentsMap, monitor);
