@@ -14,14 +14,14 @@ package org.talend.repository.preference;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.jface.preference.IPreferenceNode;
-import org.talend.core.PluginChecker;
 import org.talend.core.runtime.preference.IProjectSettingPageTester;
 
 public class MavenDeploymentConfigurationProjectSettingPageTester implements IProjectSettingPageTester {
 
     @Override
     public boolean valid(IConfigurationElement element, IPreferenceNode node) {
-        return PluginChecker.isTIS();
+        // return PluginChecker.isTIS();
+        return false;
     }
 
 }
