@@ -318,21 +318,18 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
         }
         if (childModulePomFile.getLocation().toFile().exists()) { // existed
             MavenPomCommandLauncher mavenLauncher = null;
-            // by default is compile
-            if (goals == null || goals.trim().length() == 0 || goals.equals(TalendMavenConstants.GOAL_COMPILE) 
-                    || goals.equals(TalendMavenConstants.GOAL_TEST_COMPILE)) {
-//                mavenLauncher = new MavenPomCommandLauncher(childModulePomFile, TalendMavenConstants.GOAL_REFRESH);
-//                mavenLauncher.setArgumentsMap(argumentsMap);
-//                mavenLauncher.execute(monitor);
-                buildWholeCodeProject();
-            } else {
-                mavenLauncher = new MavenPomCommandLauncher(childModulePomFile, goals);
-                mavenLauncher.setArgumentsMap(argumentsMap);
-                try {
+            try {
+                // by default is compile
+                if (goals == null || goals.trim().length() == 0 || goals.equals(TalendMavenConstants.GOAL_COMPILE)
+                        || goals.equals(TalendMavenConstants.GOAL_TEST_COMPILE)) {
+                    buildWholeCodeProject();
+                } else {
+                    mavenLauncher = new MavenPomCommandLauncher(childModulePomFile, goals);
+                    mavenLauncher.setArgumentsMap(argumentsMap);
                     mavenLauncher.execute(monitor);
-                } finally {
-                    PomUtil.restorePomFile(this);
                 }
+            } finally {
+                PomUtil.restorePomFile(this);
             }
         } else {
             throw new RuntimeException("The pom.xml is not existed. Can't build the job: " + module); //$NON-NLS-1$

@@ -21,7 +21,6 @@ import java.util.Set;
 import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -57,7 +56,6 @@ import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.java.JavaProcessor;
-import org.talend.designer.runprocess.java.TalendJavaProjectManager;
 import org.talend.repository.i18n.Messages;
 
 /**
@@ -81,8 +79,7 @@ public class MavenJavaProcessor extends JavaProcessor {
         super.generateCode(statistics, trace, javaProperties, option);
         if (isStandardJob()) {
             int options = ProcessUtils.getOptionValue(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION, 0);
-            if (isExportConfig()
-                    && !BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
+            if (!BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
                 PomUtil.backupPomFile(getTalendJavaProject());
             }
 
@@ -339,6 +336,10 @@ public class MavenJavaProcessor extends JavaProcessor {
                 // enable maven nature in case project not create yet.
                 MavenProjectUtils.enableMavenNature(monitor, project);
             } else {
+                // FIXME should update when maven project already created if:
+                // 1. children jar installed.
+                // 2. install new jar(for node or config) when editing job.
+                // 3. automatically download and install jars in commandline.
                 if (buildCacheManager.needTempAggregator() || !CommonUIPlugin.isFullyHeadless()) {
                     MavenProjectUtils.updateMavenProject(monitor, talendJavaProject.getProject());
                 }
@@ -393,7 +394,7 @@ public class MavenJavaProcessor extends JavaProcessor {
         }
         if (!isExportConfig()) {
             if (requirePackaging()) {
-                // We return the INSTALL goal if the main job and/or one of its recursive job is a Big Data job.
+                // We return the PACKAGE goal if the main job and/or one of its recursive job is a Big Data job.
                 return TalendMavenConstants.GOAL_PACKAGE;
             }
         }
