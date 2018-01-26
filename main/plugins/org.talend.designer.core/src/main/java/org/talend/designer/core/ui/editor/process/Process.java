@@ -416,7 +416,9 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
             param.setDisplayName(EParameterName.TDQ_DEFAULT_PROJECT_DIR.getDisplayName());
             param.setNumRow(99);
             param.setShow(false);
-            param.setValue(ReponsitoryContextBridge.getRootProject().getLocation().toPortableString());
+            if (ReponsitoryContextBridge.getRootProject().getLocation() != null) {
+                param.setValue(ReponsitoryContextBridge.getRootProject().getLocation().toPortableString());
+            }
             param.setReadOnly(true);
             addElementParameter(param);
         }
