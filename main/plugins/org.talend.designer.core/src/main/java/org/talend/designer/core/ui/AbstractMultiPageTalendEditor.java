@@ -1419,6 +1419,9 @@ public abstract class AbstractMultiPageTalendEditor extends MultiPageEditorPart 
                 }
             }
         }
+        if (isDirty()) {
+            doSave(new NullProgressMonitor());
+        }
         // if some code has been generated already, for the editor we should need only the main job, not the childs.
         try {
             boolean lastGeneratedWithStats = ProcessorUtilities.getLastGeneratedWithStats(process.getId());
