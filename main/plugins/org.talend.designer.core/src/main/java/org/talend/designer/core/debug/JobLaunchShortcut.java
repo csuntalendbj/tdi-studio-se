@@ -158,25 +158,12 @@ public class JobLaunchShortcut implements ILaunchShortcut {
             ILaunchConfiguration config = findLaunchConfiguration((ProcessItem) item, mode);
             if (config != null) {
                 IPreferenceStore debugUiStore = DebugUITools.getPreferenceStore();
-                // boolean oldBuildBeforeLaunch = debugUiStore.getBoolean(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH);
+                 boolean oldBuildBeforeLaunch = debugUiStore.getBoolean(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH);
+                 debugUiStore.setValue(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH, Boolean.FALSE);
                 try {
-                    if (!Problems.buildWholeProject) {
-                        // don't build auto, because will be in one Job, so can't set back the old value
-                        debugUiStore.setValue(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH, false);
-
-                        // FIXME, only for standard job, same as Problems.computeCompilationUnit
-                        ERepositoryObjectType itemType = ERepositoryObjectType.getItemType(item);
-                        if (itemType == null || !ERepositoryObjectType.PROCESS.equals(itemType)) {
-                            try {
-                                config.getFile().getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-                            } catch (CoreException e) {
-                                ExceptionHandler.process(e);
-                            }
-                        }
-                    }
                     DebugUITools.launch(config, mode);
                 } finally {
-                    // debugUiStore.setValue(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH, oldBuildBeforeLaunch);
+                     debugUiStore.setValue(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH, oldBuildBeforeLaunch);
                 }
             }
         }

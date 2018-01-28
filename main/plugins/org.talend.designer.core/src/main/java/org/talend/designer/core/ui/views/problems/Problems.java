@@ -83,9 +83,6 @@ import com.ibm.icu.text.MessageFormat;
  */
 public class Problems {
 
-    // if build whole project, means no need some codes to check.
-    public static boolean buildWholeProject = true;
-
     /**
      * This enum is used for marking the group type for problems. <br/>
      * 
@@ -681,10 +678,6 @@ public class Problems {
                     }
                 }
 
-            }
-            // TalendProcessJavaProject.buildModules for buildWholeCodeProject (about line 324)
-            if (!buildWholeProject) {
-                addAll(computeCompilationUnit(file, type, item));
             }
             if (fromJob.length > 0 && fromJob[0]) {
                 addErrorMark();
