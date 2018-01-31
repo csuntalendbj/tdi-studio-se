@@ -19,14 +19,19 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.IPath;
 import org.talend.core.model.properties.Item;
+import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.repository.utils.ItemResourceUtil;
+import org.talend.core.runtime.process.IBuildJobHandler;
 import org.talend.core.runtime.repository.build.IBuildExportHandler;
 import org.talend.core.runtime.repository.build.IMavenPomCreator;
 import org.talend.core.runtime.repository.build.RepositoryObjectTypeBuildProvider;
 import org.talend.designer.maven.tools.creator.CreateMavenStandardJobOSGiPom;
 import org.talend.designer.runprocess.IProcessor;
+import org.talend.repository.ui.wizards.exportjob.handler.BuildJobHandler;
+import org.talend.repository.ui.wizards.exportjob.handler.BuildOSGiBundleHandler;
+import org.talend.repository.ui.wizards.exportjob.scriptsmanager.JobScriptsManager.ExportChoice;
 
 /**
  * DOC ggu class global comment. Detailled comment
@@ -35,8 +40,8 @@ public class StandardJobOSGiBundleBuildProvider extends RepositoryObjectTypeBuil
 
     @Override
     public boolean valid(Map<String, Object> parameters) {
-        // return super.valid(parameters);
-        return false; // PTODO tmp disable OSGi, because it's not finished yet.
+         return super.valid(parameters);
+//        return true; // PTODO tmp disable OSGi, because it's not finished yet.
     }
 
     @Override
@@ -93,8 +98,31 @@ public class StandardJobOSGiBundleBuildProvider extends RepositoryObjectTypeBuil
 
     @Override
     public IBuildExportHandler createBuildExportHandler(Map<String, Object> parameters) {
-        // PTODO not impl yet.
-        return null;
+        if (parameters == null || parameters.isEmpty()) {
+            return null;
+        }
+        final Object item = parameters.get(ITEM);
+        if (item == null || !(item instanceof ProcessItem)) {
+            return null;
+        }
+        final Object version = parameters.get(VERSION);
+        if (version == null) {
+            return null;
+        }
+        final Object contextGroup = parameters.get(CONTEXT_GROUP);
+        if (contextGroup == null) {
+            return null;
+        }
+        Object choiceOption = parameters.get(CHOICE_OPTION);
+        if (choiceOption == null) {
+            choiceOption = Collections.emptyMap();
+        }
+        if (!(choiceOption instanceof Map)) {
+            return null;
+        }
+        IBuildJobHandler buildHandler = new BuildOSGiBundleHandler((ProcessItem) item, version.toString(), contextGroup.toString(),
+                (Map<ExportChoice, Object>) choiceOption);
+        return buildHandler;
     }
 
 }

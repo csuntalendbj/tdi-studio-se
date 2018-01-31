@@ -190,7 +190,7 @@ public class TalendJavaProjectManager {
         if (property.getItem() instanceof JobletProcessItem) {
             return getTempJavaProject();
         }
-        if (!(property.getItem() instanceof ProcessItem)) {
+        if (!(property.getItem() instanceof ProcessItem) && !property.getItem().getClass().getName().equals("org.talend.repository.services.model.services.impl.ServiceItemImpl")) {
             return null;
         }
         ITalendProcessJavaProject talendJobJavaProject = null;

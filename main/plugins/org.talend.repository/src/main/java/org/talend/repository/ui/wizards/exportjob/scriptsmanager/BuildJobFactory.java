@@ -26,6 +26,7 @@ import org.talend.core.runtime.repository.build.IBuildJobParameters;
 import org.talend.core.runtime.repository.build.IBuildParametes;
 import org.talend.repository.ui.wizards.exportjob.JavaJobScriptsExportWSWizardPage.JobExportType;
 import org.talend.repository.ui.wizards.exportjob.handler.BuildJobHandler;
+import org.talend.repository.ui.wizards.exportjob.handler.BuildOSGiBundleHandler;
 import org.talend.repository.ui.wizards.exportjob.scriptsmanager.JobScriptsManager.ExportChoice;
 
 /**
@@ -59,7 +60,7 @@ public class BuildJobFactory {
             case POJO:
                 break; // continue
             case OSGI: // TODO, later, when osgi pom is finished, will try to enable it.
-                return null; // don't support others
+                return new BuildOSGiBundleHandler(processItem, version, contextName, exportChoiceMap);// return null; // don't support others
             default:
                 jobExportType = null; // try the first one by default
                 break;
