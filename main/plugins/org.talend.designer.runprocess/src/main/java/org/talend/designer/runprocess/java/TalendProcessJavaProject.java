@@ -128,6 +128,11 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
     }
 
     @Override
+    public IFolder getBundleResourcesFolder() {
+        return createFolder(MavenSystemFolders.BUNDLE_RESOURCES.getPath());
+    }
+
+    @Override
     public IFolder getResourcesFolder() {
         return createFolder(MavenSystemFolders.RESOURCES.getPath());
     }
