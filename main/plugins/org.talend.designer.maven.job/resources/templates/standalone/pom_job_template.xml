@@ -51,6 +51,7 @@
 		<current.int-resources.dir>${basedir}/src/main/resources</current.int-resources.dir>
 		<output.resources.dir>${talend.job.name}/src/main/resources</output.resources.dir>
 		<current.resources.dir>${basedir}/src/main/ext-resources</current.resources.dir>
+		<current.bundle.resources.dir>${basedir}/src/main/bundle-resources</current.bundle.resources.dir>
 		<current.test.resources.dir>${basedir}/src/test/resources</current.test.resources.dir>
 	</properties>
 
