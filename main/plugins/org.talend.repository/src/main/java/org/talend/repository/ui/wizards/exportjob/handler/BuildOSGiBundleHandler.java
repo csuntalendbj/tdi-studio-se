@@ -29,10 +29,13 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.designer.maven.model.MavenSystemFolders;
+import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.runprocess.IProcessor;
 import org.talend.repository.documentation.ExportFileResource;
 import org.talend.repository.ui.wizards.exportjob.scriptsmanager.JobScriptsManager;
@@ -68,8 +71,6 @@ public class BuildOSGiBundleHandler extends BuildJobHandler {
      */
     @Override
     public IProcessor generateJobFiles(IProgressMonitor monitor) throws Exception {
-        // IProcessor processor = super.generateJobFiles(monitor);
-
         List<ExportFileResource> resources = osgiMavenManager
                 .getExportResources(new ExportFileResource[] { new ExportFileResource(processItem, "") });
         for (ExportFileResource resource : resources) {
@@ -87,8 +88,23 @@ public class BuildOSGiBundleHandler extends BuildJobHandler {
                 }
             }
         }
-        // return processor;
         return null;
+    }
+
+    @Override
+    protected StringBuffer getProfileArgs() {
+        StringBuffer profileBuffer = new StringBuffer();
+
+        boolean needMavenScript = exportChoice.get(ExportChoice.needMavenScript) == null
+                || isOptionChoosed(ExportChoice.needMavenScript);
+
+        profileBuffer.append(TalendMavenConstants.PREFIX_PROFILE);
+        profileBuffer.append(SPACE);
+
+        addArg(profileBuffer, false, TalendMavenConstants.PROFILE_INCLUDE_BINARIES);
+        // always disable ci-builder from studio/commandline
+        addArg(profileBuffer, false, TalendMavenConstants.PROFILE_CI_BUILDER);
+        return profileBuffer;
     }
 
     private IFile getTargetFile(String path, String fileName, IProgressMonitor monitor) {
@@ -100,7 +116,37 @@ public class BuildOSGiBundleHandler extends BuildJobHandler {
             String sub = path.replaceAll(MavenSystemFolders.JAVA.getPath(), "");
             folder = talendProcessJavaProject.getSrcSubFolder(monitor, sub);
         }
-         return folder == null ? talendProcessJavaProject.getProject().getFile(fileName) : folder.getFile(fileName);
+        return folder == null ? talendProcessJavaProject.getProject().getFile(fileName) : folder.getFile(fileName);
+    }
+
+    /*
+     * Bundle extention is jar
+     * 
+     * @see org.talend.repository.ui.wizards.exportjob.handler.AbstractBuildJobHandler#getJobTargetFile()
+     */
+    @Override
+    public IFile getJobTargetFile() {
+        if (talendProcessJavaProject == null) {
+            return null;
+        }
+        IFolder targetFolder = talendProcessJavaProject.getTargetFolder();
+        IFile bundleFile = null;
+        try {
+            targetFolder.refreshLocal(IResource.DEPTH_ONE, null);
+            // we only build one zip at a time, so just get the zip file to be able to manage some pom customizations.
+            for (IResource resource : targetFolder.members()) {
+                if (resource instanceof IFile) {
+                    IFile file = (IFile) resource;
+                    if ("jar".equals(file.getFileExtension())) {
+                        bundleFile = file;
+                        break;
+                    }
+                }
+            }
+        } catch (CoreException e) {
+            ExceptionHandler.process(e);
+        }
+        return bundleFile;
     }
 
     private void setFileContent(InputStream inputStream, IFile file, IProgressMonitor monitor) throws CoreException {
