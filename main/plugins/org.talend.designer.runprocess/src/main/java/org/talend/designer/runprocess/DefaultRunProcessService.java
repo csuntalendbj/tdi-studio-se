@@ -60,8 +60,10 @@ import org.talend.core.model.runprocess.data.PerformanceData;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.utils.Log4jUtil;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
+import org.talend.core.runtime.process.TalendProcessArgumentConstant;
 import org.talend.core.runtime.projectsetting.ProjectPreferenceManager;
 import org.talend.core.service.IESBMicroService;
+import org.talend.core.service.IESBRouteService;
 import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.ProjectPomManager;
@@ -205,9 +207,9 @@ public class DefaultRunProcessService implements IRunProcessService {
             }
         }
 
-        // check for ESB MicroService
-
         IESBMicroService microService = null;
+
+        IESBRouteService routeService = null;
 
         if (GlobalServiceRegister.getDefault().isServiceRegistered(IESBMicroService.class)) {
             microService = (IESBMicroService) GlobalServiceRegister.getDefault().getService(IESBMicroService.class);
@@ -222,6 +224,10 @@ public class DefaultRunProcessService implements IRunProcessService {
             }
         }
 
+        if (GlobalServiceRegister.getDefault().isServiceRegistered(IESBRouteService.class)) {
+            routeService = (IESBRouteService) GlobalServiceRegister.getDefault().getService(IESBRouteService.class);
+        }
+
         if (ComponentCategory.CATEGORY_4_MAPREDUCE.getName().equals(process.getComponentsType())) {
             return new MapReduceJavaProcessor(process, property, filenameFromLabel);
         } else if (ComponentCategory.CATEGORY_4_SPARK.getName().equals(process.getComponentsType())) {
@@ -231,10 +237,17 @@ public class DefaultRunProcessService implements IRunProcessService {
         } else if (ComponentCategory.CATEGORY_4_SPARKSTREAMING.getName().equals(process.getComponentsType())) {
             return new SparkJavaProcessor(process, property, filenameFromLabel);
         } else if (ComponentCategory.CATEGORY_4_CAMEL.getName().equals(process.getComponentsType())) {
-            if (microService != null) {
-                IProcessor processor = microService.createJavaProcessor(process, property, filenameFromLabel, true);
-                if (processor != null) {
-                    return processor;
+            if ("ROUTE_MICROSERVICE"
+                    .equals(property.getAdditionalProperties().get(TalendProcessArgumentConstant.ARG_BUILD_TYPE))) {
+                if (microService != null) {
+                    IProcessor processor = microService.createJavaProcessor(process, property, filenameFromLabel, true);
+                    if (processor != null) {
+                        return processor;
+                    }
+                }
+            } else {
+                if (routeService != null) {
+                    return routeService.createJavaProcessor(process, property, filenameFromLabel, false);
                 }
             }
 
