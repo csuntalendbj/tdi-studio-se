@@ -77,6 +77,11 @@ public class MavenJavaProcessor extends JavaProcessor {
     @Override
     public void generateCode(boolean statistics, boolean trace, boolean javaProperties, int option) throws ProcessorException {
         super.generateCode(statistics, trace, javaProperties, option);
+        generateCodeAfter(statistics, trace, javaProperties, option);
+    }
+
+    protected void generateCodeAfter(boolean statistics, boolean trace, boolean javaProperties, int option)
+            throws ProcessorException {
         if (isStandardJob()) {
             int options = ProcessUtils.getOptionValue(getArguments(), TalendProcessArgumentConstant.ARG_GENERATE_OPTION, 0);
             if (!BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.GENERATE_WITHOUT_COMPILING)) {
