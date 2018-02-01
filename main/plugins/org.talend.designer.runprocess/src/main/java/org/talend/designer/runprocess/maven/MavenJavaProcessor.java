@@ -206,7 +206,14 @@ public class MavenJavaProcessor extends JavaProcessor {
         final String classPathSeparator = extractClassPathSeparator();
 
         // Test-0.1
-        String jarName = JavaResourcesHelper.getJobJarName(process.getName(), process.getVersion());
+        String jobName = process.getName();
+        String jobVersion = process.getVersion();
+        if (ProcessUtils.isTestContainer(process)) {
+            IProcess basePrcess = ProcessUtils.getTestContainerBaseProcess(process);
+            jobName = basePrcess.getName();
+            jobVersion = basePrcess.getVersion();
+        }
+        String jarName = JavaResourcesHelper.getJobJarName(jobName, jobVersion);
         String exportJar = libPrefixPath + jarName + FileExtensions.JAR_FILE_SUFFIX;
 
         Set<JobInfo> infos = getBuildChildrenJobs();
