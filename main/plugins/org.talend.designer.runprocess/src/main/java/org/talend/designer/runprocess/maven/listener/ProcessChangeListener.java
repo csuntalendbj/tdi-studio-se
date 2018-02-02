@@ -100,6 +100,11 @@ public class ProcessChangeListener implements PropertyChangeListener {
                     // FIXME
                 } else {
                     String[] oldFields = (String[]) oldValue;
+                    if (oldFields.length == 0) {
+                        //case import project.
+                        TalendJavaProjectManager.generatePom((ProcessItem) property.getItem());
+                        return;
+                    }
                     String oldName = oldFields[0];
                     String oldVersion = oldFields[1];
                     if (!oldName.equals(property.getLabel())) {
@@ -110,7 +115,6 @@ public class ProcessChangeListener implements PropertyChangeListener {
                     } else if (!oldVersion.equals(property.getVersion())) {
                         // version change, will create new item
                         // create new job project.
-                        TalendJavaProjectManager.getTalendJobJavaProject(property);
                         TalendJavaProjectManager.generatePom((ProcessItem) property.getItem());
                     }
                 }
