@@ -158,13 +158,8 @@ public class JobLaunchShortcut implements ILaunchShortcut {
             ILaunchConfiguration config = findLaunchConfiguration((ProcessItem) item, mode);
             if (config != null) {
                 IPreferenceStore debugUiStore = DebugUITools.getPreferenceStore();
-                 boolean oldBuildBeforeLaunch = debugUiStore.getBoolean(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH);
-                 debugUiStore.setValue(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH, Boolean.FALSE);
-                try {
-                    DebugUITools.launch(config, mode);
-                } finally {
-                     debugUiStore.setValue(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH, oldBuildBeforeLaunch);
-                }
+                debugUiStore.setValue(IDebugUIConstants.PREF_BUILD_BEFORE_LAUNCH, Boolean.FALSE);
+                DebugUITools.launch(config, mode);
             }
         }
     }
@@ -225,14 +220,14 @@ public class JobLaunchShortcut implements ILaunchShortcut {
         String jobId = file.getProperty().getId();
         String jobName = file.getProperty().getLabel();
         String jobVersion = file.getProperty().getVersion();
-        ILaunchConfigurationType type = getLaunchManager().getLaunchConfigurationType(
-                TalendDebugUIConstants.JOB_DEBUG_LAUNCH_CONFIGURATION_TYPE);
+        ILaunchConfigurationType type = getLaunchManager()
+                .getLaunchConfigurationType(TalendDebugUIConstants.JOB_DEBUG_LAUNCH_CONFIGURATION_TYPE);
         String displayName = jobName + " " + jobVersion; //$NON-NLS-1$
 
         try {
             if (type != null) {
-                ILaunchConfigurationWorkingCopy wc = type.newInstance(null, getLaunchManager()
-                        .generateUniqueLaunchConfigurationNameFrom(displayName));
+                ILaunchConfigurationWorkingCopy wc = type.newInstance(null,
+                        getLaunchManager().generateUniqueLaunchConfigurationNameFrom(displayName));
                 wc.setAttribute(TalendDebugUIConstants.JOB_NAME, jobName);
                 wc.setAttribute(TalendDebugUIConstants.JOB_ID, jobId);
                 wc.setAttribute(TalendDebugUIConstants.JOB_VERSION, jobVersion);
