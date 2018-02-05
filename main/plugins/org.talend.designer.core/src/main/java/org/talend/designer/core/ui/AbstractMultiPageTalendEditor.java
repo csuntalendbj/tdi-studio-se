@@ -958,7 +958,9 @@ public abstract class AbstractMultiPageTalendEditor extends MultiPageEditorPart 
         codeEditor = CodeEditorFactory.getInstance().getCodeEditor(getCurrentLang(), process);
         processor = ProcessorUtilities.getProcessor(process, process.getProperty(), process.getContextManager()
                 .getDefaultContext());
-        MavenProjectUtils.enableMavenNature(new NullProgressMonitor(), processor.getCodeProject());
+        if (!process.isReadOnly()) {
+            MavenProjectUtils.enableMavenNature(new NullProgressMonitor(), processor.getCodeProject());
+        }
         if (processor instanceof IJavaBreakpointListener) {
             JDIDebugModel.addJavaBreakpointListener((IJavaBreakpointListener) processor);
         }
