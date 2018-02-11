@@ -148,14 +148,14 @@
 		<!-- If have children jobs, will add here -->
 		<fileSet><!-- microservice config files -->
 			<directory>${microservice.configs.dir}</directory>
-			<outputDirectory>${output.resources.dir}/</outputDirectory>
+			<outputDirectory>/</outputDirectory>
 			<includes>
 				<include>config/**</include>
 			</includes>
 		</fileSet>
 		<fileSet><!-- microservice running config files -->
 			<directory>${microservice.running.configs.dir}</directory>
-			<outputDirectory>${talend.job.name}</outputDirectory>
+			<outputDirectory>${talend.job.path}</outputDirectory>
 			<includes>
 				<include>config/**</include>
 			</includes>
