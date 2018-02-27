@@ -21,9 +21,7 @@ import java.util.Set;
 import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -59,7 +57,6 @@ import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.java.JavaProcessor;
-import org.talend.designer.runprocess.java.TalendJavaProjectManager;
 import org.talend.repository.i18n.Messages;
 
 /**
@@ -320,6 +317,10 @@ public class MavenJavaProcessor extends JavaProcessor {
 
     }
 
+    protected boolean packagingAndAssembly() {
+        return false;
+    }
+
     @Override
     public void build(IProgressMonitor monitor) throws Exception {
         BuildCacheManager buildCacheManager = BuildCacheManager.getInstance();
@@ -343,7 +344,8 @@ public class MavenJavaProcessor extends JavaProcessor {
             final Map<String, Object> argumentsMap = new HashMap<String, Object>();
             argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_INSTALL);
             argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, "-T 1C -f " // $NON-NLS-1$
-                    + BuildCacheManager.BUILD_AGGREGATOR_POM_NAME + " -P !" + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY); // $NON-NLS-1$
+                    + BuildCacheManager.BUILD_AGGREGATOR_POM_NAME + " -P " + (packagingAndAssembly() ? "" : "!")
+                    + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY); // $NON-NLS-1$
             // install all subjobs
             buildCacheManager.build(monitor, argumentsMap);
 
