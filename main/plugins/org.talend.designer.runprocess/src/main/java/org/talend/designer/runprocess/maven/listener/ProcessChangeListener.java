@@ -117,7 +117,7 @@ public class ProcessChangeListener implements PropertyChangeListener {
                     } else if (!oldVersion.equals(property.getVersion())) {
                         // version change, will create new item
                         // create new job project.
-                        TalendJavaProjectManager.generatePom((ProcessItem) property.getItem());
+                        TalendJavaProjectManager.generatePom((ProcessItem) property.getItem(), 0x8);
                     }
                 }
             }
@@ -233,7 +233,7 @@ public class ProcessChangeListener implements PropertyChangeListener {
         if (newValue instanceof Item) {
             if (newValue instanceof ProcessItem) {
                 if (propertyName.equals(ERepositoryActionName.SAVE.getName())) {
-                    TalendJavaProjectManager.generatePom((ProcessItem) newValue);
+                    TalendJavaProjectManager.generatePom((ProcessItem) newValue, 0x4);
                 }
             } else if (newValue instanceof RoutineItem) {
                 updateCodesChange((RoutineItem) newValue);
@@ -252,7 +252,7 @@ public class ProcessChangeListener implements PropertyChangeListener {
                         // do nothing
                         return;
                     }
-                    TalendJavaProjectManager.generatePom((ProcessItem) item);
+                    TalendJavaProjectManager.generatePom((ProcessItem) item, 0x2);
                 } else if (item instanceof RoutineItem) {
                     updateCodesChange((RoutineItem) item);
                 }
