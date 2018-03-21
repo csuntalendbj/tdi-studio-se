@@ -72,6 +72,7 @@ import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.process.LastGenerationInfo;
 import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.core.IDesignerCoreService;
+import org.talend.designer.maven.model.TalendJavaProjectConstants;
 import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.designer.maven.tools.BuildCacheManager;
@@ -555,7 +556,7 @@ public class TalendJavaProjectManager {
     }
 
     public static void generatePom(ProcessItem processItem) {
-        generatePom(processItem, 0);
+        generatePom(processItem, TalendJavaProjectConstants.GEN_UNKNOWN);
     }
 
     /**
@@ -576,7 +577,7 @@ public class TalendJavaProjectManager {
             if (processor instanceof MavenJavaProcessor) {
                 LastGenerationInfo.getInstance().clearModulesNeededWithSubjobPerJob();
 
-                int option = 0;
+                int option = TalendJavaProjectConstants.GEN_UNKNOWN;
 
                 option |= source;
 
