@@ -26,6 +26,8 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.talend.core.CorePlugin;
+import org.talend.core.GlobalServiceRegister;
+import org.talend.core.ILibraryManagerService;
 import org.talend.core.hadoop.IHadoopClusterService;
 import org.talend.core.hadoop.repository.HadoopRepositoryUtil;
 import org.talend.core.model.general.ModuleNeeded;
@@ -438,6 +440,11 @@ public class JavaProcessUtil {
                                         String a = moduleName.replaceFirst("[.][^.]+$", "");
                                         mn.setMavenUri(
                                                 "mvn:org.talend.libraries/" + a + "/" + line.get("JAR_NEXUS_VERSION") + "/jar");
+
+                                        mn.setCustomMavenUri(mn.getMavenUri());
+                                        ILibraryManagerService libManagerService = (ILibraryManagerService) GlobalServiceRegister
+                                                .getDefault().getService(ILibraryManagerService.class);
+                                        libManagerService.saveCustomMavenURIMap();
                                     }
                                     modulesNeeded.add(mn);
                                 }
@@ -505,6 +512,11 @@ public class JavaProcessUtil {
                                                 "mvn:org.talend.libraries/"
                                                         + TalendTextUtils.removeQuotes(driverName).replaceFirst("[.][^.]+$", "")
                                                         + "/" + (String) map.get("JAR_NEXUS_VERSION") + "/jar");
+                                        module.setCustomMavenUri(module.getMavenUri());
+                                        ILibraryManagerService libManagerService = (ILibraryManagerService) GlobalServiceRegister
+                                                .getDefault().getService(ILibraryManagerService.class);
+                                        libManagerService.saveCustomMavenURIMap();
+
                                     } else {
                                         module = new ModuleNeeded(null, TalendTextUtils.removeQuotes(driverName), null, true);
                                     }
