@@ -355,7 +355,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
             srcFolder = tProcessJavaProject.getSrcFolder();
             boolean needsToHaveContextInsideJar = true;
 
-            if (property.getItem() instanceof ProcessItem) {
+            if (property != null && property.getItem() instanceof ProcessItem) {
                 needsToHaveContextInsideJar = !new BigDataJobUtil((ProcessItem) property.getItem()).needsToHaveContextInsideJar();
             }
 
